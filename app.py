@@ -23,8 +23,8 @@ api = Api(blueprint,
           doc='/doc')  # Serve Swagger UI at /doc endpoint
 
 # Add namespaces for different endpoints
-api.add_namespace(lilygos3_ns, path='/esp32/temphumi')
-api.add_namespace(temi1500_ns, path='/esp32/temi1500')
+api.add_namespace(lilygos3_ns, path='/v1/temphumi')
+api.add_namespace(temi1500_ns, path='/v1/temi1500')
 
 # Register blueprint with the app
 app.register_blueprint(blueprint)
