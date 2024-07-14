@@ -3,7 +3,7 @@ from . import api
 from database import db
 
 # Models
-esp_data_model = api.model('ESPTEMI1500Data', {
+lilygos3_data_model = api.model('ESPTEMI1500Data', {
     'org': fields.String(required=True, description='Organization'),
     'dept': fields.String(required=True, description='Department'),
     'room': fields.String(required=True, description='Room'),

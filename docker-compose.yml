@@ -11,7 +11,7 @@ services:
   #     - .:/usr/src/app
   #   environment:
   #     FLASK_ENV: development
-  #     DATABASE_URI: postgres://postgres:password@db:5432/iot_db
+  #     DATABASE_URI: postgresql://postgres:password@db:5432/iot_db
   #     VALID_KEY: XXV7lnIse9q4YGA11pXA
   #     FIRMWARE_DIR: /firmware
   #   depends_on:

@@ -2,7 +2,13 @@ from flask import request
 from flask_restx import Resource
 from . import api
 from .models import esp_data_model, device_check_model, firmware_check_model, sensor_data_model
+from dotenv import load_dotenv
+import os
 
+load_dotenv()
+VALID_KEY = os.environ['VALID_KEY']
+# Directory where .bin files are stored
+FIRMWARE_DIR = os.environ['LILYGOS3_FIRMWARE_DIR']
    
 @api.route('/esp_data')
 class ESPDataList(Resource):

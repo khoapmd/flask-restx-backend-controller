@@ -1,26 +1,37 @@
 from flask import request
 from flask_restx import Resource
 from . import api
-from .models import esp_data_model, device_check_model, firmware_check_model
+from .models import lilygos3_data_model, device_check_model, firmware_check_model, ESPTEMI1500Data
+from dotenv import load_dotenv
+import os
 
-   
+load_dotenv()
+VALID_KEY = os.environ['VALID_KEY']
+# Directory where .bin files are stored
+FIRMWARE_DIR = os.environ['TEMI1500_FIRMWARE_DIR']
 @api.route('/esp_data')
-class ESPDataList(Resource):
+class DeviceList(Resource):
     @api.doc('list_esp_data')
+    @api.param('key', 'API Key')
     def get(self):
-        """List all ESP data"""
-        # Implementation remains the same as get_esp_data()
-
+        key = request.args.get('key')
+        if key != VALID_KEY:
+            return {'message': 'Invalid API Key'}, 403
+        esp_data = ESPTEMI1500Data.query.all()
+        return [data.to_dict() for data in esp_data], 200
+    
     @api.doc('create_esp_data')
-    @api.expect(esp_data_model)
+    @api.expect(lilygos3_data_model)
     def post(self):
+        key = request.args.get('key')
+        code = request.args.get('code')
         """Create a new ESP data entry"""
         # Implementation remains the same as create_esp_data()
 
 @api.route('/esp_data/<int:id>')
 class ESPData(Resource):
     @api.doc('update_esp_data')
-    @api.expect(esp_data_model)
+    @api.expect(lilygos3_data_model)
     def put(self, id):
         """Update an ESP data entry"""
         # Implementation remains the same as update_esp_data()
