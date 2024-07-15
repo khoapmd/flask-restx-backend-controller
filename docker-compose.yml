@@ -1,33 +1,33 @@
 name: 'iot-stack'
 
 services:
-  # backend-api:
-  #   container_name: backend-api
-  #   build: .
-  #   command: flask run --host=0.0.0.0
-  #   ports:
-  #     - "5000:5000"
-  #   volumes:
-  #     - .:/usr/src/app
-  #   environment:
-  #     FLASK_ENV: development
-  #     DATABASE_URI: postgresql://postgres:password@db:5432/iot_db
-  #     VALID_KEY: XXV7lnIse9q4YGA11pXA
-  #     FIRMWARE_DIR: /firmware
-  #   depends_on:
-  #     - postgres
-
-  postgres:
-    container_name: postgres
-    image: postgres:latest
-    environment:
-      POSTGRES_DB: iot_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
+  backend-api:
+    container_name: backend-api
+    build: .
+    command: flask run --host=0.0.0.0
     ports:
-      - "5432:5432"
+      - "5000:5000"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - .:/usr/src/app
+    environment:
+      FLASK_ENV: development
+      DATABASE_URI: postgresql://postgres:password@db:5432/iot_db
+      VALID_KEY: XXV7lnIse9q4YGA11pXA
+      FIRMWARE_DIR: /firmware
+    # depends_on:
+    #   - postgres
 
-volumes:
-  postgres_data:
+#   postgres:
+#     container_name: postgres
+#     image: postgres:latest
+#     environment:
+#       POSTGRES_DB: iot_db
+#       POSTGRES_USER: postgres
+#       POSTGRES_PASSWORD: password
+#     ports:
+#       - "5432:5432"
+#     volumes:
+#       - postgres_data:/var/lib/postgresql/data
+
+# volumes:
+#   postgres_data:
