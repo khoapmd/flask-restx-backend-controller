@@ -12,7 +12,7 @@ migrate = Migrate()
 def init_db(app):
     # Configure the SQLAlchemy part of the app instance
     #app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URI']
-    app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:password@localhost:5432/iot_db"
+    app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://iot_backend:noPass@@2234@vnsmterht01:5432/iot_db"
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     # Initialize the app with the extension

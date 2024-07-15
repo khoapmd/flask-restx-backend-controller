@@ -1,4 +1,4 @@
-from flask_restx import fields
+from flask_restx import fields, reqparse
 from . import api
 from database import db
 
@@ -53,12 +53,10 @@ class ESPTEMI1500Data(db.Model):
             'firm_ver': self.firm_ver
         }
 
-device_check_model = api.model('DeviceCheck', {
-    'deviceName': fields.String(description='Device Name'),
-    'exist': fields.String(description='Existence Flag')
-})
-
-firmware_check_model = api.model('FirmwareCheck', {
-    'hasnewversion': fields.String(description='New Version Flag')
-})
-
+# Define the request parser
+get_esp_firmware_parser = reqparse.RequestParser()
+get_esp_firmware_parser.add_argument('key', type=str, required=True, help='The API key')
+get_esp_firmware_parser.add_argument('filePrefix', type=str, required=True, help='The file prefix')
+get_esp_firmware_parser.add_argument('screenSize', type=str, required=True, help='The screen size')
+get_esp_firmware_parser.add_argument('version', type=str, required=True, help='The current firmware version')
+get_esp_firmware_parser.add_argument('update', type=str, required=True, choices=['Y', 'N'], help='Whether to update the firmware')

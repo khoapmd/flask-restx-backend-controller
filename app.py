@@ -20,7 +20,7 @@ api = Api(blueprint,
           version='1.0', 
           title='Backend Management',
           description='A Flask-RESTx API for IoT devices management',
-          doc='/doc')  # Serve Swagger UI at /doc endpoint
+          doc='/docs')  # Serve Swagger UI at /doc endpoint
 
 # Add namespaces for different endpoints
 api.add_namespace(lilygos3_ns, path='/v1/temphumi')

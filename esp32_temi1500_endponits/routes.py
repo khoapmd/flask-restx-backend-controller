@@ -1,15 +1,16 @@
 from dotenv import load_dotenv
-import os
-from flask import request
+import os, re
+from flask import request, jsonify, send_file
 from flask_restx import Resource
 from . import api
-from .models import lilygos3_data_model, device_check_model, firmware_check_model, ESPTEMI1500Data
+from .models import lilygos3_data_model, ESPTEMI1500Data, get_esp_firmware_parser
 from auth import checkKEY
 from database import db
 
 load_dotenv()
 # Directory where .bin files are stored
-FIRMWARE_DIR = os.environ['TEMI1500_FIRMWARE_DIR']
+PARENT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+FIRMWARE_DIR = os.path.join(PARENT_DIR, os.environ['TEMI1500_FIRMWARE_DIR'])
 
 @api.route('/esp_data/all')
 class DeviceList(Resource):
@@ -92,16 +93,49 @@ class DeviceCheck(Resource):
             # Handle exceptions
             return {"error": str(e)}, 500
 
+def get_latest_version(file_prefix, screen_size):
+    regex_pattern = re.compile(rf"{re.escape(file_prefix)}_{re.escape(screen_size)}_(\d+\.\d+)\.bin")
+    versions = []
+    
+    for filename in os.listdir(FIRMWARE_DIR):
+        match = regex_pattern.match(filename)
+        if match:
+            versions.append(match.group(1))
+    
+    if versions:
+        return max(versions, key=lambda v: list(map(int, v.split('.'))))
+    return None
+
 @api.route('/getESPFirm')
-class Firmware(Resource):
-    @api.doc('get_esp_firmware')
-    @api.param('key', 'API Key')
-    @api.param('filePrefix', 'File Prefix')
-    @api.param('screenSize', 'Screen Size')
-    @api.param('version', 'Current Version')
-    @api.param('update', 'Update Flag')
-    @api.marshal_with(firmware_check_model)
+class GetESPFirmware(Resource):
+    @api.doc(parser=get_esp_firmware_parser)
     def get(self):
-        checkKEY(request.args.get('key'))
-        """Get firmware information or download firmware"""
-        # Implementation remains the same as get_esp_firmware()
+        try:
+            args = get_esp_firmware_parser.parse_args()
+
+            checkKEY(args['key'])
+            file_prefix = args['filePrefix']
+            screen_size = args['screenSize']
+            version = args['version']
+            update = args['update']
+
+            latest_version = get_latest_version(file_prefix, screen_size)
+            if not latest_version:
+                return {"error": "No firmware found for the given prefix and screen size"}, 404
+
+            has_new_version = 'Y' if version < latest_version else 'N'
+
+            if update == 'Y' and has_new_version == 'Y':
+                firmware_file = f"{file_prefix}_{screen_size}_{latest_version}.bin"
+                firmware_path = os.path.join(FIRMWARE_DIR, firmware_file)
+
+                if os.path.exists(firmware_path):
+                    return send_file(firmware_path, as_attachment=True), 200
+                else:
+                    return {"error": "Firmware file not found"}, 404
+
+            return {"hasnewversion": has_new_version}, 200
+        
+        except Exception as e:
+            # Handle exceptions
+            return {"error": str(e)}, 500
