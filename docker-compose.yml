@@ -1,19 +1,22 @@
-name: 'iot-stack'
+name: 'flask-restx-backend'
 
 services:
-  backend-api:
-    container_name: backend-api
+  flask-restx:
+    container_name: flask-restx
     build: .
     command: flask run --host=0.0.0.0
     ports:
-      - "5000:5000"
+      - "5002:5000"
     volumes:
       - .:/usr/src/app
+      - /data1/OTA/firmware:/firmware
     environment:
       FLASK_ENV: development
-      DATABASE_URI: postgresql://postgres:password@db:5432/iot_db
+      DATABASE_URI: postgresql://iot_backend:3Jp8VJyia7ECaj@postgres:5432/iot_db
       VALID_KEY: XXV7lnIse9q4YGA11pXA
-      FIRMWARE_DIR: /firmware
+      TEMI1500_FIRMWARE_DIR: /firmware/temi1500
+      LILYGOS3_FIRMWARE_DIR: /firmware/lilygos3
+
     # depends_on:
     #   - postgres
 

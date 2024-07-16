@@ -3,7 +3,7 @@ from . import api
 from database import db
 
 # Models
-lilygos3_data_model = api.model('ESPTEMI1500Data', {
+esp_data_model = api.model('ESPTEMI1500Data', {
     'org': fields.String(required=True, description='Organization'),
     'dept': fields.String(required=True, description='Department'),
     'room': fields.String(required=True, description='Room'),
@@ -60,3 +60,7 @@ get_esp_firmware_parser.add_argument('filePrefix', type=str, required=True, help
 get_esp_firmware_parser.add_argument('screenSize', type=str, required=True, help='The screen size')
 get_esp_firmware_parser.add_argument('version', type=str, required=True, help='The current firmware version')
 get_esp_firmware_parser.add_argument('update', type=str, required=True, choices=['Y', 'N'], help='Whether to update the firmware')
+
+update_firm_ver_model = api.model('UpdateFirmVer', {
+    'firm_ver': fields.String(required=True, description='Firmware Version')
+})
