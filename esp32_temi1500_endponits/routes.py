@@ -4,11 +4,11 @@ from flask import request, jsonify, send_file
 from flask_restx import Resource
 from . import api
 from .models import esp_data_model, ESPTEMI1500Data, get_esp_firmware_parser, update_firm_ver_model
-from auth import checkKEY
 from database import db
 
 load_dotenv()
 # Directory where .bin files are stored
+VALID_KEY = os.environ['VALID_KEY']
 FIRMWARE_DIR = os.environ['TEMI1500_FIRMWARE_DIR']
 
 @api.route('/esp_data/all')
@@ -17,21 +17,23 @@ class DeviceList(Resource):
     @api.param('key', 'API Key')
     def get(self):
         try:
-            checkKEY(request.args.get('key'))
+            if request.args.get('key') != VALID_KEY:
+                return {'message': 'Invalid API Key'}, 403
             esp_data = ESPTEMI1500Data.query.all()
             return [data.to_dict() for data in esp_data], 200
         except Exception as e:
             # Handle exceptions
             return {"error": str(e)}, 500
     
-@api.route('/esp_data')
+@api.route('/data')
 class DeviceData(Resource):
     @api.doc('create_esp_data')
     @api.param('key', 'API Key')
     @api.expect(esp_data_model)
     def post(self):
         try:
-            checkKEY(request.args.get('key'))
+            if request.args.get('key') != VALID_KEY:
+                return {'message': 'Invalid API Key'}, 403
             """Create a new ESP data entry"""
             # Extract data from request body
             data = request.json
@@ -63,13 +65,15 @@ class DeviceData(Resource):
     @api.doc('update_esp_data')
     @api.expect(esp_data_model)
     def put(self, id):
-        checkKEY(request.args.get('key'))
+        if request.args.get('key') != VALID_KEY:
+                return {'message': 'Invalid API Key'}, 403
         """Update an ESP data entry"""
         # Implementation remains the same as update_esp_data()
 
     @api.doc('delete_esp_data')
     def delete(self, id):
-        checkKEY(request.args.get('key'))
+        if request.args.get('key') != VALID_KEY:
+                return {'message': 'Invalid API Key'}, 403
         """Delete an ESP data entry"""
         # Implementation remains the same as delete_esp_data()
 
@@ -80,7 +84,8 @@ class DeviceCheck(Resource):
     @api.param('u_id', 'Device UID')
     def get(self):
         try:
-            checkKEY(request.args.get('key'))
+            if request.args.get('key') != VALID_KEY:
+                return {'message': 'Invalid API Key'}, 403
             u_id = request.args.get('u_id')
             """Check if a device exists and provide device name"""
             result = ESPTEMI1500Data.query.filter_by(u_id=u_id).first()
@@ -110,9 +115,10 @@ class GetESPFirmware(Resource):
     @api.doc(parser=get_esp_firmware_parser)
     def get(self):
         try:
+            if request.args.get('key') != VALID_KEY:
+                return {'message': 'Invalid API Key'}, 403
             args = get_esp_firmware_parser.parse_args()
 
-            checkKEY(args['key'])
             file_prefix = args['filePrefix']
             screen_size = args['screenSize']
             version = args['version']
@@ -146,7 +152,8 @@ class GetESPFirmware(Resource):
     @api.expect(update_firm_ver_model)
     def put(self):
         try:
-            checkKEY(request.args.get('key'))
+            if request.args.get('key') != VALID_KEY:
+                return {'message': 'Invalid API Key'}, 403
             u_id = request.args.get('u_id')
             data = request.json
             firm_ver = data.get('firm_ver')

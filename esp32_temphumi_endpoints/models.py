@@ -1,4 +1,4 @@
-from flask_restx import fields
+from flask_restx import fields, reqparse
 from . import api
 from database import db
 
@@ -12,23 +12,6 @@ esp_data_model = api.model('LILYGOS3DATA', {
     'u_id': fields.String(required=True, description='Unique ID'),
     'device_type': fields.String(required=True, description='Device Type'),
     'firm_ver': fields.String(required=True, description='Firmware Version')
-})
-
-sensor_data_model = api.model('SENSORDATATEMPHUMI', {
-    'hSlope': fields.Float(description='Humidity Slope'),
-    'tSlope': fields.Float(description='Temperature Slope'),
-    'hIntercept': fields.Float(description='Humidity Intercept'),
-    'tIntercept': fields.Float(description='Temperature Intercept'),
-    'sensor_id': fields.String(description='Sensor ID')
-})
-
-device_check_model = api.model('DeviceCheck', {
-    'deviceName': fields.String(description='Device Name'),
-    'exist': fields.String(description='Existence Flag')
-})
-
-firmware_check_model = api.model('FirmwareCheck', {
-    'hasnewversion': fields.String(description='New Version Flag')
 })
 
 # SQLAlchemy models
@@ -71,6 +54,18 @@ class LILYGOS3DATA(db.Model):
             'firm_ver': self.firm_ver
         }
 
+sensor_data_model = api.model('SENSORDATATEMPHUMI', {
+    'u_id': fields.String(required=True, description='Unique ID'),
+    'hSlope': fields.Float(description='Humidity Slope'),
+    'tSlope': fields.Float(description='Temperature Slope'),
+    'hIntercept': fields.Float(description='Humidity Intercept'),
+    'tIntercept': fields.Float(description='Temperature Intercept'),
+    'temp_limit': fields.String(description='Temperature Limit'),
+    'humi_limit': fields.String(description='Humidity Limit'),
+    'sensor_id': fields.String(description='Sensor ID')
+})
+
+# SQLAlchemy models
 class SENSORTEMPHUMIDATA(db.Model):
     __tablename__ = 'sensor_temphumi_data'
 
@@ -80,16 +75,20 @@ class SENSORTEMPHUMIDATA(db.Model):
     t_slope = db.Column(db.Float, nullable=True)
     h_intercept = db.Column(db.Float, nullable=True)
     t_intercept = db.Column(db.Float, nullable=True)
-    sensor_id = db.Column(db.String(255), nullable=True)
+    temp_limit = db.Column(db.String(255), nullable=True)
+    humi_limit = db.Column(db.String(255), nullable=True)
+    sensor_id = db.Column(db.String(255), nullable=False)
 
     esp_device = db.relationship('LILYGOS3DATA', backref='sensor_data')
 
-    def __init__(self, u_id, h_slope, t_slope, h_intercept, t_intercept, sensor_id):
+    def __init__(self, u_id, h_slope, t_slope, h_intercept, t_intercept, sensor_id, temp_limit, humi_limit):
         self.u_id = u_id
         self.h_slope = h_slope
         self.t_slope = t_slope
         self.h_intercept = h_intercept
         self.t_intercept = t_intercept
+        self.temp_limit = temp_limit
+        self.humi_limit = humi_limit
         self.sensor_id = sensor_id
 
     def __repr__(self):
@@ -102,5 +101,19 @@ class SENSORTEMPHUMIDATA(db.Model):
             't_slope': self.t_slope,
             'h_intercept': self.h_intercept,
             't_intercept': self.t_intercept,
+            'temp_limit': self.temp_limit,
+            'humi_limit': self.humi_limit,
             'sensor_id': self.sensor_id
         }
+    
+# Define the request parser
+get_esp_firmware_parser = reqparse.RequestParser()
+get_esp_firmware_parser.add_argument('key', type=str, required=True, help='The API key')
+get_esp_firmware_parser.add_argument('filePrefix', type=str, required=True, help='The file prefix')
+get_esp_firmware_parser.add_argument('screenSize', type=str, required=True, help='The screen size')
+get_esp_firmware_parser.add_argument('version', type=str, required=True, help='The current firmware version')
+get_esp_firmware_parser.add_argument('update', type=str, required=True, choices=['Y', 'N'], help='Whether to update the firmware')
+
+update_firm_ver_model = api.model('UpdateFirmVer', {
+    'firm_ver': fields.String(required=True, description='Firmware Version')
+})

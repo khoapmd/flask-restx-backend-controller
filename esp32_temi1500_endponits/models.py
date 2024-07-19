@@ -14,6 +14,7 @@ esp_data_model = api.model('ESPTEMI1500Data', {
     'firm_ver': fields.String(required=True, description='Firmware Version')
 })
 
+# SQLAlchemy models
 class ESPTEMI1500Data(db.Model):
     __tablename__ = 'esp_temi1500_data'
 
