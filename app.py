@@ -32,7 +32,7 @@ authorizations = {
 }
 api = Api(blueprint, 
           authorizations=authorizations,
-          version='1.0', 
+          version='1.1', 
           title='Backend Management',
           description='A Flask-RESTx API for IoT devices management',
           doc='/docs')  # Serve Swagger UI at /doc endpoint
