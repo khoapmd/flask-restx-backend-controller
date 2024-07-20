@@ -69,6 +69,31 @@ class DeviceData(Resource):
             return {'message': 'ESP data created successfully'}, 201
         except Exception as e:
             return {"error": str(e)}, 500
+        
+    @api.doc('get_device_data')
+    @api.param('key', 'API Key')
+    @api.param('u_id', 'Device Unique Identify')
+    def get(self):
+        try:
+            if request.args.get('key') != VALID_KEY:
+                return {'message': 'Invalid API Key'}, 403
+            
+            u_id = request.args.get('u_id')
+            cache_key = f'temi1500_data_{u_id}'
+            cached_data = redis_client.get(cache_key)
+            if cached_data:
+                return json.loads(cached_data) # Convert string back to dict
+
+            temi1500 = ESPTEMI1500Data.query.filter_by(u_id=u_id).first()
+            if temi1500:
+                # Cache the result
+                redis_client.set(cache_key, json.dumps(temi1500.to_dict()), ex=3600)  # Cache for 1 hour
+
+                return temi1500.to_dict(), 200
+            else:
+                return {'message': 'No data found for the given u_id'}, 404
+        except Exception as e:
+            return {"error": str(e)}, 500
 
     @api.doc('update_esp_data')
     @api.expect(esp_data_model)

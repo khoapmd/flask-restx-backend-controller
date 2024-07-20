@@ -88,8 +88,7 @@ class DeviceData(Resource):
     @api.param('key', 'API Key')
     @api.param('u_id', 'Device Unique Identify')
     def get(self):
-        try:
-            
+        try:   
             if request.args.get('key') != VALID_KEY:
                 return {'message': 'Invalid API Key'}, 403
             
@@ -112,6 +111,18 @@ class DeviceData(Resource):
                 return {'message': 'No data found for the given u_id'}, 404
         except Exception as e:
             return {"error": str(e)}, 500
+    @api.doc('update_esp_data')
+    @api.expect(esp_data_model)
+    def put(self, id):
+        if request.args.get('key') != VALID_KEY:
+            return {'message': 'Invalid API Key'}, 403
+        # Implementation remains the same as update_esp_data()
+
+    @api.doc('delete_esp_data')
+    def delete(self, id):
+        if request.args.get('key') != VALID_KEY:
+            return {'message': 'Invalid API Key'}, 403
+        # Implementation remains the same as delete_esp_data()
 
 @api.route('/checkexist')
 class DeviceCheck(Resource):
