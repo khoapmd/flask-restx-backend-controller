@@ -146,8 +146,6 @@ class GetESPFirmware(Resource):
     @api.doc(parser=get_esp_firmware_parser)
     def get(self):
         try:
-            if request.args.get('key') != VALID_KEY:
-                return {'message': 'Invalid API Key'}, 403
             args = get_esp_firmware_parser.parse_args()
 
             file_prefix = args['filePrefix']
