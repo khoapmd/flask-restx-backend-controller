@@ -99,15 +99,12 @@ class DeviceData(Resource):
         # Implementation remains the same as delete_esp_data()
 
 @api.route('/checkexist')
-@api.doc(security='apikey')
 class DeviceCheck(Resource):
     @api.doc('check_device_exist')
-    @api.param('key', 'API Key')
+    @api.doc(security='apikey')
     @api.param('u_id', 'Device UID')
     def get(self):
         try:
-            if request.args.get('key') != VALID_KEY:
-                return {'message': 'Invalid API Key'}, 403
             u_id = request.args.get('u_id')
 
             # Try to get the data from Redis
@@ -140,7 +137,6 @@ def get_latest_version(file_prefix, screen_size):
     return None
 
 @api.route('/firmware')
-@api.doc(security='apikey')
 class GetESPFirmware(Resource):
     @api.doc(security='apikey')
     @api.doc(parser=get_esp_firmware_parser)
