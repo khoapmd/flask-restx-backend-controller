@@ -190,7 +190,7 @@ class GetESPFirmware(Resource):
             return {"error": str(e)}, 500
 
     @api.doc('update_firm_ver')
-    @api.param('key', 'API Key', required=True)
+    @api.doc(security='apikey')
     @api.param('u_id', 'Device Unique ID', required=True)
     @api.expect(update_firm_ver_model)
     def put(self):
