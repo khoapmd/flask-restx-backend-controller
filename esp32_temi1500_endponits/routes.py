@@ -6,18 +6,14 @@ from .models import esp_data_model, ESPTEMI1500Data, get_esp_firmware_parser, up
 from database import db, redis_client
 
 # Directory where .bin files are stored
-VALID_KEY = os.getenv('VALID_KEY')
 FIRMWARE_DIR = os.getenv('TEMI1500_FIRMWARE_DIR')
 
-@api.route('/esp_data/all')
+@api.route('/data/all')
 class DeviceList(Resource):
+    @api.doc(security='apikey')
     @api.doc('list_esp_data')
-    @api.param('key', 'API Key')
     def get(self):
         try:
-            if request.args.get('key') != VALID_KEY:
-                return {'message': 'Invalid API Key'}, 403
-
             # Try to get the data from Redis
             esp_data = redis_client.get('temi1500_data_all')
             if esp_data:
@@ -37,13 +33,10 @@ class DeviceList(Resource):
 @api.route('/data')
 class DeviceData(Resource):
     @api.doc('create_esp_data')
-    @api.param('key', 'API Key')
+    @api.doc(security='apikey')
     @api.expect(esp_data_model)
     def post(self):
         try:
-            if request.args.get('key') != VALID_KEY:
-                return {'message': 'Invalid API Key'}, 403
-
             data = request.json
             u_id = data.get('u_id')
             device_type = data.get('device_type')
@@ -71,13 +64,10 @@ class DeviceData(Resource):
             return {"error": str(e)}, 500
         
     @api.doc('get_device_data')
-    @api.param('key', 'API Key')
+    @api.doc(security='apikey')
     @api.param('u_id', 'Device Unique Identify')
     def get(self):
         try:
-            if request.args.get('key') != VALID_KEY:
-                return {'message': 'Invalid API Key'}, 403
-            
             u_id = request.args.get('u_id')
             cache_key = f'temi1500_data_{u_id}'
             cached_data = redis_client.get(cache_key)
@@ -96,19 +86,20 @@ class DeviceData(Resource):
             return {"error": str(e)}, 500
 
     @api.doc('update_esp_data')
+    @api.doc(security='apikey')
     @api.expect(esp_data_model)
     def put(self, id):
-        if request.args.get('key') != VALID_KEY:
-            return {'message': 'Invalid API Key'}, 403
+        return {'message': 'nothing'}, 403
         # Implementation remains the same as update_esp_data()
 
     @api.doc('delete_esp_data')
+    @api.doc(security='apikey')
     def delete(self, id):
-        if request.args.get('key') != VALID_KEY:
-            return {'message': 'Invalid API Key'}, 403
+        return {'message': 'nothing'}, 403
         # Implementation remains the same as delete_esp_data()
 
 @api.route('/checkexist')
+@api.doc(security='apikey')
 class DeviceCheck(Resource):
     @api.doc('check_device_exist')
     @api.param('key', 'API Key')
@@ -149,7 +140,9 @@ def get_latest_version(file_prefix, screen_size):
     return None
 
 @api.route('/firmware')
+@api.doc(security='apikey')
 class GetESPFirmware(Resource):
+    @api.doc(security='apikey')
     @api.doc(parser=get_esp_firmware_parser)
     def get(self):
         try:
@@ -181,13 +174,11 @@ class GetESPFirmware(Resource):
             return {"error": str(e)}, 500
 
     @api.doc('update_firm_ver')
-    @api.param('key', 'API Key', required=True)
+    @api.doc(security='apikey')
     @api.param('u_id', 'Device Unique ID', required=True)
     @api.expect(update_firm_ver_model)
     def put(self):
         try:
-            if request.args.get('key') != VALID_KEY:
-                return {'message': 'Invalid API Key'}, 403
             u_id = request.args.get('u_id')
             data = request.json
             firm_ver = data.get('firm_ver')
