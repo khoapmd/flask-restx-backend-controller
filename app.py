@@ -51,6 +51,7 @@ def validate_secret_key():
         return
     if 'X-Secret-Key' not in request.headers or request.headers['X-Secret-Key'] != VALID_KEY:
         return {'message': 'Unauthorized. Invalid secret key.'}, 401
+    
 # Route for the home page
 @app.route('/')
 def index():
