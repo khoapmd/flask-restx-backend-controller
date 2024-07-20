@@ -6,3 +6,12 @@
 # Update database
 # docker exec -it flask-restx flask db migrate -m "Update migration"
 # docker exec -it flask-restx flask db upgrade
+
+# Create database
+# flask db init
+# flask db migrate -m "Initial migration"
+# flask db upgrade
+
+# Update database
+# flask db migrate -m "Update migration"
+# flask db upgrade

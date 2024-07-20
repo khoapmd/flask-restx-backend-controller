@@ -1,15 +1,13 @@
-from dotenv import load_dotenv
 import os, re
-from flask import request, jsonify, send_file
+from flask import request, jsonify, send_file, json
 from flask_restx import Resource
 from . import api
 from .models import esp_data_model, ESPTEMI1500Data, get_esp_firmware_parser, update_firm_ver_model
-from database import db
+from database import db, redis_client
 
-load_dotenv()
 # Directory where .bin files are stored
-VALID_KEY = os.environ['VALID_KEY']
-FIRMWARE_DIR = os.environ['TEMI1500_FIRMWARE_DIR']
+VALID_KEY = os.getenv('VALID_KEY')
+FIRMWARE_DIR = os.getenv('TEMI1500_FIRMWARE_DIR')
 
 @api.route('/esp_data/all')
 class DeviceList(Resource):
@@ -19,12 +17,23 @@ class DeviceList(Resource):
         try:
             if request.args.get('key') != VALID_KEY:
                 return {'message': 'Invalid API Key'}, 403
+
+            # Try to get the data from Redis
+            esp_data = redis_client.get('esp_data_all')
+            if esp_data:
+                return jsonify(eval(json.loads(esp_data)))
+
+            # If not found in Redis, get it from PostgreSQL
             esp_data = ESPTEMI1500Data.query.all()
-            return [data.to_dict() for data in esp_data], 200
+            esp_data_list = [data.to_dict() for data in esp_data]
+
+            # Store the data in Redis
+            redis_client.set('esp_data_all', json.dumps(esp_data_list), ex=300)  # Cache for 5 minutes
+
+            return esp_data_list, 200
         except Exception as e:
-            # Handle exceptions
             return {"error": str(e)}, 500
-    
+
 @api.route('/data')
 class DeviceData(Resource):
     @api.doc('create_esp_data')
@@ -34,14 +43,12 @@ class DeviceData(Resource):
         try:
             if request.args.get('key') != VALID_KEY:
                 return {'message': 'Invalid API Key'}, 403
-            """Create a new ESP data entry"""
-            # Extract data from request body
+
             data = request.json
             u_id = data.get('u_id')
             device_type = data.get('device_type')
             firm_ver = data.get('firm_ver')
 
-            # Create a new ESPTEMI1500Data entry
             new_esp_data = ESPTEMI1500Data(
                 org='org',
                 dept='dept',
@@ -53,28 +60,27 @@ class DeviceData(Resource):
                 firm_ver=firm_ver
             )
 
-            # Save to database
             db.session.add(new_esp_data)
             db.session.commit()
 
+            # Invalidate the Redis cache
+            redis_client.delete('esp_data_all')
+
             return {'message': 'ESP data created successfully'}, 201
         except Exception as e:
-            # Handle exceptions
             return {"error": str(e)}, 500
 
     @api.doc('update_esp_data')
     @api.expect(esp_data_model)
     def put(self, id):
         if request.args.get('key') != VALID_KEY:
-                return {'message': 'Invalid API Key'}, 403
-        """Update an ESP data entry"""
+            return {'message': 'Invalid API Key'}, 403
         # Implementation remains the same as update_esp_data()
 
     @api.doc('delete_esp_data')
     def delete(self, id):
         if request.args.get('key') != VALID_KEY:
-                return {'message': 'Invalid API Key'}, 403
-        """Delete an ESP data entry"""
+            return {'message': 'Invalid API Key'}, 403
         # Implementation remains the same as delete_esp_data()
 
 @api.route('/checkexist')
@@ -87,14 +93,21 @@ class DeviceCheck(Resource):
             if request.args.get('key') != VALID_KEY:
                 return {'message': 'Invalid API Key'}, 403
             u_id = request.args.get('u_id')
-            """Check if a device exists and provide device name"""
+
+            # Try to get the data from Redis
+            cache_key = f'device_exist_{u_id}'
+            result = redis_client.get(cache_key)
+            if result:
+                return jsonify(json.loads(result))
+
             result = ESPTEMI1500Data.query.filter_by(u_id=u_id).first()
             if result:
-                return {"exist": "Y", "firm_ver": result.firm_ver}, 200
+                response = {"exist": "Y", "firm_ver": result.firm_ver}
+                redis_client.set(cache_key, json.dumps(response), ex=300)  # Cache for 5 minutes
+                return response, 200
 
             return {"exist": "N"}, 204
         except Exception as e:
-            # Handle exceptions
             return {"error": str(e)}, 500
 
 def get_latest_version(file_prefix, screen_size):
@@ -134,18 +147,14 @@ class GetESPFirmware(Resource):
                 firmware_file = f"{file_prefix}_{screen_size}_{latest_version}.bin"
                 firmware_path = os.path.join(FIRMWARE_DIR, firmware_file)
                 if os.path.exists(firmware_path):
-                    # return {"OK": "Test"}, 200
-                    return send_file(firmware_path, as_attachment=True) #Do NOT ADD 200 or any code here, it would cause JSON return error
+                    return send_file(firmware_path, as_attachment=True)
                 else:
                     return {"error": "Firmware file not found"}, 404
 
             return {"hasnewversion": has_new_version}, 200
-        
         except Exception as e:
-            # Handle exceptions
             return {"error": str(e)}, 500
 
-    #update firmware version info in Database
     @api.doc('update_firm_ver')
     @api.param('key', 'API Key', required=True)
     @api.param('u_id', 'Device Unique ID', required=True)
@@ -158,14 +167,17 @@ class GetESPFirmware(Resource):
             data = request.json
             firm_ver = data.get('firm_ver')
 
-            # Find the ESP data entry by u_id
             esp_data = ESPTEMI1500Data.query.filter_by(u_id=u_id).first()
             if not esp_data:
                 return {"error": "Device not found"}, 404
 
-            # Update the firmware version
             esp_data.firm_ver = firm_ver
             db.session.commit()
+
+            cache__data_key = f'device_{u_id}'
+            cache_exist_key = f'device_exist_{u_id}'
+            redis_client.delete(cache__data_key)
+            redis_client.delete(cache_exist_key)
 
             return {'message': 'Firmware version updated successfully'}, 200
         except Exception as e:

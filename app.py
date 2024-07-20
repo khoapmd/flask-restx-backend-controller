@@ -8,6 +8,9 @@ from database import init_db
 from esp32_temphumi_endpoints.routes import api as lilygos3_ns
 from esp32_temi1500_endponits.routes import api as temi1500_ns
 
+# Import environment variables from win_env.py for Windows
+import win_env
+
 # Initialize Flask app
 app = Flask(__name__, template_folder='templates')
 
