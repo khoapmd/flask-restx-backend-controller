@@ -19,16 +19,16 @@ class DeviceList(Resource):
                 return {'message': 'Invalid API Key'}, 403
 
             # Try to get the data from Redis
-            esp_data = redis_client.get('esp_data_all')
+            esp_data = redis_client.get('temi1500_data_all')
             if esp_data:
-                return jsonify(eval(json.loads(esp_data)))
+                return json.loads(esp_data)
 
             # If not found in Redis, get it from PostgreSQL
             esp_data = ESPTEMI1500Data.query.all()
             esp_data_list = [data.to_dict() for data in esp_data]
 
             # Store the data in Redis
-            redis_client.set('esp_data_all', json.dumps(esp_data_list), ex=300)  # Cache for 5 minutes
+            redis_client.set('temi1500_data_all', json.dumps(esp_data_list), ex=300)  # Cache for 5 minutes
 
             return esp_data_list, 200
         except Exception as e:
@@ -64,7 +64,7 @@ class DeviceData(Resource):
             db.session.commit()
 
             # Invalidate the Redis cache
-            redis_client.delete('esp_data_all')
+            redis_client.delete('temi1500_data_all')
 
             return {'message': 'ESP data created successfully'}, 201
         except Exception as e:
@@ -95,10 +95,10 @@ class DeviceCheck(Resource):
             u_id = request.args.get('u_id')
 
             # Try to get the data from Redis
-            cache_key = f'device_exist_{u_id}'
+            cache_key = f'temi1500_exist_{u_id}'
             result = redis_client.get(cache_key)
             if result:
-                return jsonify(json.loads(result))
+                return json.loads(result)
 
             result = ESPTEMI1500Data.query.filter_by(u_id=u_id).first()
             if result:
@@ -174,9 +174,11 @@ class GetESPFirmware(Resource):
             esp_data.firm_ver = firm_ver
             db.session.commit()
 
-            cache__data_key = f'device_{u_id}'
-            cache_exist_key = f'device_exist_{u_id}'
-            redis_client.delete(cache__data_key)
+            cache_all_key = 'temi1500_data_all'
+            cache_data_key = f'temi1500_data_{u_id}'
+            cache_exist_key = f'temi1500_exist_{u_id}'
+            redis_client.delete(cache_all_key)
+            redis_client.delete(cache_data_key)
             redis_client.delete(cache_exist_key)
 
             return {'message': 'Firmware version updated successfully'}, 200

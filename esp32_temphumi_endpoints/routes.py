@@ -23,7 +23,7 @@ class DeviceList(Resource):
             cache_key = 'lilygo_data_all'
             cached_data = redis_client.get(cache_key)
             if cached_data:
-                return jsonify(eval(json.loads(cached_data)))  # Convert string back to list of dicts
+                return json.loads(cached_data)  # Convert string back to list of dicts
 
             # Query the database
             esp_data = LILYGOS3DATA.query.all()
@@ -68,8 +68,8 @@ class DeviceData(Resource):
                 t_slope=1.0056,
                 h_intercept=-3.1109,
                 t_intercept=-0.2008,
-                temp_limit='',
-                humi_limit='',
+                temp_limit='20-30',
+                humi_limit='60-90',
                 sensor_id=sensor_id
             )
 
@@ -94,10 +94,10 @@ class DeviceData(Resource):
                 return {'message': 'Invalid API Key'}, 403
             
             u_id = request.args.get('u_id')
-            cache_key = f'device_data_{u_id}'
+            cache_key = f'lilygo_data_{u_id}'
             cached_data = redis_client.get(cache_key)
             if cached_data:
-                return jsonify(eval(json.loads(cached_data)))  # Convert string back to dict
+                return json.loads(cached_data) # Convert string back to dict
 
             lilygo = LILYGOS3DATA.query.filter_by(u_id=u_id).first()
             sensor = SENSORTEMPHUMIDATA.query.filter_by(u_id=u_id).first()
@@ -127,10 +127,10 @@ class DeviceCheck(Resource):
             u_id = request.args.get('u_id')
             device_type = request.args.get('device_type')
             # Try to get the data from Redis
-            cache_key = f'device_exist_{u_id}'
+            cache_key = f'lilygo_exist_{u_id}'
             result = redis_client.get(cache_key)
             if result:
-                return jsonify(json.loads(result))
+                return json.loads(result)
             lily = LILYGOS3DATA.query.filter_by(u_id=u_id).first()
             if lily:
                 sensor = SENSORTEMPHUMIDATA.query.filter_by(u_id=u_id).first()
@@ -212,9 +212,11 @@ class GetESPFirmware(Resource):
             esp_data.firm_ver = firm_ver
             db.session.commit()
 
-            cache__data_key = f'device_{u_id}'
-            cache_exist_key = f'device_exist_{u_id}'
-            redis_client.delete(cache__data_key)
+            cache_all_key = f'lilygo_data_all'
+            cache_data_key = f'lilygo_data_{u_id}'
+            cache_exist_key = f'lilygo_exist_{u_id}'
+            redis_client.delete(cache_all_key)
+            redis_client.delete(cache_data_key)
             redis_client.delete(cache_exist_key)
 
             return {'message': 'Firmware version updated successfully'}, 200

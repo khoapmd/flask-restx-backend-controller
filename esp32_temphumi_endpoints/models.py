@@ -11,6 +11,7 @@ esp_data_model = api.model('LILYGOS3DATA', {
     'display_name': fields.String(required=True, description='Display Name'),
     'u_id': fields.String(required=True, description='Unique ID'),
     'device_type': fields.String(required=True, description='Device Type'),
+    'sensor_id': fields.String(required=True, description='Sensor ID'),
     'firm_ver': fields.String(required=True, description='Firmware Version')
 })
 
