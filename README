@@ -1,17 +1,23 @@
-# Create database
-# docker exec -it flask-restx flask db init
-# docker exec -it flask-restx flask db migrate -m "Initial migration"
-# docker exec -it flask-restx flask db upgrade
+# Create database using docker
+docker exec -it flask-restx flask db init
+docker exec -it flask-restx flask db migrate -m "Initial migration"
+docker exec -it flask-restx flask db upgrade
+
+# Update database using docker
+docker exec -it flask-restx flask db migrate -m "Update migration"
+docker exec -it flask-restx flask db upgrade
+
+# Create database in development
+flask db init
+flask db migrate -m "Initial migration"
+flask db upgrade
 
 # Update database
-# docker exec -it flask-restx flask db migrate -m "Update migration"
-# docker exec -it flask-restx flask db upgrade
+flask db migrate -m "Update migration"
+flask db upgrade
 
-# Create database
-# flask db init
-# flask db migrate -m "Initial migration"
-# flask db upgrade
+# Create auth user
+Run auth_enpoints/pashword_hash.py
+Add the username and pashword_hash into User table in database
 
-# Update database
-# flask db migrate -m "Update migration"
-# flask db upgrade
+#Run application
