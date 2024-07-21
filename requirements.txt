@@ -4,4 +4,7 @@ flask-swagger-ui
 flask-sqlalchemy 
 psycopg2-binary
 Flask-Migrate
+flask_cors
 redis
+Gunicorn
+python-dotenv

@@ -4,22 +4,19 @@ services:
   flask-restx:
     container_name: flask-restx
     build: .
-    command: flask run --host=0.0.0.0
     ports:
       - "5002:5000"
     volumes:
       - .:/usr/src/app
-      - /data1/OTA/firmware:/firmware
+      # - /data1/OTA/firmware:/firmware
+      - C:/firmware:/firmware
     environment:
-      FLASK_ENV: development
-      DATABASE_URI: postgresql://iot_backend:3Jp8VJyia7ECaj@postgres:5432/iot_db
-      VALID_KEY: XXV7lnIse9q4YGA11pXA
-      TEMI1500_FIRMWARE_DIR: /firmware/temi1500
-      LILYGOS3_FIRMWARE_DIR: /firmware/lilygos3
-      REDIS_HOST: 'redis'
-      REDIS_PORT: '6379'
-      REDIS_DB: '0'
-      REDIS_EX: '3600'
+      FLASK_DEBUG: "0"
+      FLASK_ENV: production
+    networks:
+      - iot-stack_default
+    env_file:
+      - production.env
 
     # depends_on:
     #   - postgres
@@ -35,16 +32,19 @@ services:
 #       - "5432:5432"
 #     volumes:
 #       - postgres_data:/var/lib/postgresql/data
-redis:
-    image: redis:latest
-    container_name: redis
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
+  # redis:
+  #     image: redis:latest
+  #     container_name: redis
+  #     ports:
+  #       - "6379:6379"
+  #     volumes:
+  #       - redis_data:/data
 
-volumes:
-  # postgres_data:
-  redis_data:
-    driver: local
+networks:
+  iot-stack_default:
+    external: true
+# volumes:
+#   postgres_data:
+#   redis_data:
+#     driver: local
 

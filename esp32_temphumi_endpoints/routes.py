@@ -1,14 +1,11 @@
 import os, re
-from flask import request, jsonify, send_file, json
+from flask import request, send_file, json
 from flask_restx import Resource
 from . import api
 from .models import esp_data_model, sensor_data_model, LILYGOS3DATA, SENSORTEMPHUMIDATA, get_esp_firmware_parser, update_firm_ver_model
 from database import db, redis_client
 from sqlalchemy import func
-
-# Directory where .bin files are stored
-FIRMWARE_DIR = os.getenv('LILYGOS3_FIRMWARE_DIR')
-REDIS_EX = os.getenv('REDIS_EX')
+from config import LILYGOS3_FIRMWARE_DIR, REDIS_EX
 
 @api.route('/data/all')
 class DeviceList(Resource):
@@ -151,7 +148,7 @@ def get_latest_version(file_prefix, screen_size):
     regex_pattern = re.compile(rf"{re.escape(file_prefix)}_{re.escape(screen_size)}_(\d+\.\d+)\.bin")
     versions = []
 
-    for filename in os.listdir(FIRMWARE_DIR):
+    for filename in os.listdir(LILYGOS3_FIRMWARE_DIR):
         match = regex_pattern.match(filename)
         if match:
             versions.append(match.group(1))
@@ -180,7 +177,7 @@ class GetESPFirmware(Resource):
 
             if update == 'Y' and has_new_version == 'Y':
                 firmware_file = f"{file_prefix}_{screen_size}_{latest_version}.bin"
-                firmware_path = os.path.join(FIRMWARE_DIR, firmware_file)
+                firmware_path = os.path.join(LILYGOS3_FIRMWARE_DIR, firmware_file)
                 if os.path.exists(firmware_path):
                     return send_file(firmware_path, as_attachment=True)
                 else:

@@ -4,6 +4,7 @@ from flask import Flask, Blueprint, render_template, request
 from flask_restx import Api
 from flask_cors import CORS
 from database import init_db
+from config import VALID_KEY
 
 # Import namespaces and models
 from esp32_temphumi_endpoints.routes import api as lilygos3_ns
@@ -11,10 +12,6 @@ from esp32_temi1500_endponits.routes import api as temi1500_ns
 from firmware_control_endpoints.routes import api as firmware_ns
 from redis_endpoints.routes import api as redis_ns
 
-# Import environment variables from win_env.py for Windows
-import win_env
-
-VALID_KEY = os.getenv('VALID_KEY')
 # Initialize Flask app
 app = Flask(__name__, template_folder='templates')
 CORS(app)  # Enable CORS for all origins
@@ -51,9 +48,10 @@ app.register_blueprint(blueprint)
 def validate_secret_key():
     if request.endpoint == 'api.doc' or request.endpoint == 'api.specs' :
         return
+    
     if 'X-Secret-Key' not in request.headers or request.headers['X-Secret-Key'] != VALID_KEY:
         return {'message': 'Unauthorized. Invalid secret key.'}, 401
-    
+
 # Route for the home page
 @app.route('/')
 def index():
@@ -66,3 +64,4 @@ def custom_swagger_ui():
 
 if __name__ == '__main__':
     app.run(debug=True)
+    # pass
