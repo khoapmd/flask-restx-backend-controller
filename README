@@ -20,4 +20,10 @@ flask db upgrade
 Run auth_enpoints/pashword_hash.py
 Add the username and pashword_hash into User table in database
 
-#Run application
+#Run application in docker
+docker-compose down
+docker-compose build --no-cache
+docker-compose up -d
+
+#Run application in development
+Run app.py
