@@ -4,6 +4,7 @@ services:
   flask-restx:
     container_name: flask-restx
     build: .
+    # command: flask run --host=0.0.0.0 #comment for production
     ports:
       - "5002:5000"
     volumes:
@@ -11,7 +12,7 @@ services:
       # - /data1/OTA/firmware:/firmware
       - C:/firmware:/firmware
     environment:
-      FLASK_DEBUG: "0"
+      FLASK_DEBUG: 0
       FLASK_ENV: production
     networks:
       - iot-stack_default
