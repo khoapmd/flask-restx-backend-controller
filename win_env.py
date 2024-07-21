@@ -9,4 +9,5 @@ os.environ['TEMI1500_FIRMWARE_DIR'] = 'C:\\firmware\\temi1500'
 os.environ['REDIS_HOST'] = 'localhost'
 os.environ['REDIS_PORT'] = '6379'
 os.environ['REDIS_DB'] = '0'
+os.environ['REDIS_EX'] = '3600'
 

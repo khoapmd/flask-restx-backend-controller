@@ -1,3 +1,3 @@
 from flask_restx import Namespace
 
-api = Namespace('Firmware Controller', description='CURD Operations')
+api = Namespace('Firmware Controller', description='Firmware related operations')

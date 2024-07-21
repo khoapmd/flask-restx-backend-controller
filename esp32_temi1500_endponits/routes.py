@@ -7,7 +7,7 @@ from database import db, redis_client
 
 # Directory where .bin files are stored
 FIRMWARE_DIR = os.getenv('TEMI1500_FIRMWARE_DIR')
-
+REDIS_EX = os.getenv('REDIS_EX')
 @api.route('/data/all')
 class DeviceList(Resource):
     @api.doc(security='apikey')
@@ -24,7 +24,7 @@ class DeviceList(Resource):
             esp_data_list = [data.to_dict() for data in esp_data]
 
             # Store the data in Redis
-            redis_client.set('temi1500_data_all', json.dumps(esp_data_list), ex=300)  # Cache for 5 minutes
+            redis_client.set('temi1500_data_all', json.dumps(esp_data_list), ex=REDIS_EX)
 
             return esp_data_list, 200
         except Exception as e:
@@ -77,7 +77,7 @@ class DeviceData(Resource):
             temi1500 = ESPTEMI1500Data.query.filter_by(u_id=u_id).first()
             if temi1500:
                 # Cache the result
-                redis_client.set(cache_key, json.dumps(temi1500.to_dict()), ex=3600)  # Cache for 1 hour
+                redis_client.set(cache_key, json.dumps(temi1500.to_dict()), ex=REDIS_EX)
 
                 return temi1500.to_dict(), 200
             else:
@@ -116,7 +116,7 @@ class DeviceCheck(Resource):
             result = ESPTEMI1500Data.query.filter_by(u_id=u_id).first()
             if result:
                 response = {"exist": "Y", "firm_ver": result.firm_ver}
-                redis_client.set(cache_key, json.dumps(response), ex=300)  # Cache for 5 minutes
+                redis_client.set(cache_key, json.dumps(response), ex=REDIS_EX)
                 return response, 200
 
             return {"exist": "N"}, 204

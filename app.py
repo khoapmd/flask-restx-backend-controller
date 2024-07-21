@@ -9,6 +9,7 @@ from database import init_db
 from esp32_temphumi_endpoints.routes import api as lilygos3_ns
 from esp32_temi1500_endponits.routes import api as temi1500_ns
 from firmware_control_endpoints.routes import api as firmware_ns
+from redis_endpoints.routes import api as redis_ns
 
 # Import environment variables from win_env.py for Windows
 import win_env
@@ -41,6 +42,7 @@ api = Api(blueprint,
 api.add_namespace(lilygos3_ns, path='/v1/temphumi')
 api.add_namespace(temi1500_ns, path='/v1/temi1500')
 api.add_namespace(firmware_ns, path='/v1/firmware')
+api.add_namespace(redis_ns, path='/v1/redis')
 
 # Register blueprint with the app
 app.register_blueprint(blueprint)

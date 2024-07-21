@@ -19,6 +19,7 @@ services:
       REDIS_HOST: 'redis'
       REDIS_PORT: '6379'
       REDIS_DB: '0'
+      REDIS_EX: '3600'
 
     # depends_on:
     #   - postgres

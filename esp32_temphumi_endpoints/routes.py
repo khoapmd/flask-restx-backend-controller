@@ -8,6 +8,7 @@ from sqlalchemy import func
 
 # Directory where .bin files are stored
 FIRMWARE_DIR = os.getenv('LILYGOS3_FIRMWARE_DIR')
+REDIS_EX = os.getenv('REDIS_EX')
 
 @api.route('/data/all')
 class DeviceList(Resource):
@@ -26,7 +27,7 @@ class DeviceList(Resource):
             data = [data.to_dict() for data in esp_data]
             
             # Cache the result
-            redis_client.set(cache_key, json.dumps(data), ex=3600)  # Cache for 1 hour
+            redis_client.set(cache_key, json.dumps(data), ex=REDIS_EX)
 
             return data, 200
         except Exception as e:
@@ -94,7 +95,7 @@ class DeviceData(Resource):
                 combined_data = {**lilygo.to_dict(), **sensor.to_dict()}
                 
                 # Cache the result
-                redis_client.set(cache_key, json.dumps(combined_data), ex=3600)  # Cache for 1 hour
+                redis_client.set(cache_key, json.dumps(combined_data), ex=REDIS_EX)
 
                 return combined_data, 200
             else:
@@ -140,7 +141,7 @@ class DeviceCheck(Resource):
             result = f"{device_type}{str(next_id).zfill(4)}"
             if result:
                 response = {"exist": "Y", "firm_ver": result.firm_ver}
-                redis_client.set(cache_key, json.dumps(response), ex=300)  # Cache for 5 minutes
+                redis_client.set(cache_key, json.dumps(response), ex=REDIS_EX)
                 return response, 200
             return {"exist": "N"}, 204
         except Exception as e:
