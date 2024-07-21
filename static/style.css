@@ -111,3 +111,23 @@ input:focus {
     display: block;
     margin-top: 12px;
 }
+
+/* Reset margin and padding for app-title */
+.app-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px; 
+}
+
+/* Margin for the logo to create spacing */
+.app-title img {
+    margin-right: 10px; 
+}
+
+/* Styling for the h1 title */
+.app-title h1 {
+    margin: 0; 
+    font-size: 24px;
+    color: #333;
+}

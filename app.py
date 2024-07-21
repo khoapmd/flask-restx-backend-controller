@@ -51,7 +51,7 @@ app.register_blueprint(blueprint)
 def validate_secret_key():
     whitelisted_endpoints = ['api.specs', 'home', 'static', 'docs', 'auth.login', 'auth.logout']
     whitelisted_paths = ['/login', '/logout']
-    # print(request.endpoint)
+    print(request.endpoint)
     if request.endpoint in whitelisted_endpoints or request.path in whitelisted_paths:
         return
     if 'X-Secret-Key' not in request.headers or request.headers['X-Secret-Key'] != VALID_KEY:
@@ -64,7 +64,7 @@ def home():
         return render_template('login.html')
     else:
         return render_template('home.html')
-    
+
 # Route for custom Swagger UI
 @app.route('/api/docs')
 def docs():
