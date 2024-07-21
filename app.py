@@ -1,10 +1,10 @@
 # app.py
 import os
-from flask import Flask, Blueprint, render_template, request, session, flash, redirect, url_for
+from flask import Flask, Blueprint, render_template, request, session, flash, redirect, url_for, send_from_directory
 from flask_restx import Api
 from flask_cors import CORS
 from database import init_db
-from config import VALID_KEY
+from config import VALID_KEY, SESSION_KEY
 
 # Import namespaces and models
 from esp32_temphumi_endpoints.routes import api as lilygos3_ns
@@ -15,7 +15,7 @@ from auth_endpoints.routes import auth_bp  # Import the Blueprint for authentica
 
 # Initialize Flask app
 app = Flask(__name__, template_folder='templates')
-app.secret_key = os.urandom(12)
+app.secret_key = SESSION_KEY
 CORS(app)  # Enable CORS for all origins
 
 # Initialize the database and migrations
@@ -49,13 +49,18 @@ app.register_blueprint(blueprint)
 
 @app.before_request
 def validate_secret_key():
-    whitelisted_endpoints = ['api.specs', 'home', 'static', 'docs', 'auth.login', 'auth.logout']
+    whitelisted_endpoints = ['api.specs', 'home', 'static', 'docs', 'auth.login', 'auth.logout', 'favicon']
     whitelisted_paths = ['/login', '/logout']
-    print(request.endpoint)
+    #print(request.endpoint)
     if request.endpoint in whitelisted_endpoints or request.path in whitelisted_paths:
         return
     if 'X-Secret-Key' not in request.headers or request.headers['X-Secret-Key'] != VALID_KEY:
         return {'message': 'Unauthorized. Invalid secret key.'}, 401
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(os.path.join(app.root_path, 'static'),
+                               'favicon.ico', mimetype='image/x-icon')
 
 # Route for the home page
 @app.route('/')
