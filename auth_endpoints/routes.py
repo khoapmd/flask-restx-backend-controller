@@ -18,7 +18,6 @@ def login():
         stored_password_hash = user.password_hash
         if check_password_hash(stored_password_hash, password):
             session['logged_in'] = True
-            return redirect(url_for('docs'))
     return redirect(url_for('home'))
 
 @auth_bp.route("/logout")

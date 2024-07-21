@@ -63,7 +63,7 @@ def home():
     if not session.get('logged_in'):
         return render_template('login.html')
     else:
-        return 'Hello Boss!  <a href="auth/logout">Logout</a>'
+        return render_template('home.html')
     
 # Route for custom Swagger UI
 @app.route('/api/docs')

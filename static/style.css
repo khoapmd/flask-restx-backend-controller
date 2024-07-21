@@ -1,38 +1,57 @@
 * {
     box-sizing: border-box;
-    }
-    
-    *:focus {
+}
+
+*:focus {
     outline: none;
-    }
-    body {
+}
+
+body {
     font-family: Arial;
     background-color: #3498DB;
     padding: 50px;
-    }
-    .login {
+}
+
+.login {
     margin: 20px auto;
     width: 300px;
-    }
-    .login-screen {
+}
+
+.login-screen {
     background-color: #FFF;
     padding: 20px;
     border-radius: 5px
-    }
-    
-    .app-title {
+}
+
+.home {
+    margin: 20px auto;
+    width: 300px;
+}
+
+.home-screen {
+    background-color: #FFF;
+    padding: 20px;
+    border-radius: 5px
+}
+
+.app-title {
     text-align: center;
     color: #777;
-    }
-    
-    .login-form {
+}
+
+.login-form {
     text-align: center;
-    }
-    .control-group {
+}
+
+.home-form {
+    text-align: center;
+}
+
+.control-group {
     margin-bottom: 10px;
-    }
-    
-    input {
+}
+
+input {
     text-align: center;
     background-color: #ECF0F1;
     border: 2px solid transparent;
@@ -42,14 +61,14 @@
     padding: 10px 0;
     width: 250px;
     transition: border .5s;
-    }
-    
-    input:focus {
+}
+
+input:focus {
     border: 2px solid #3498DB;
     box-shadow: none;
-    }
-    
-    .btn {
+}
+
+.btn {
     border: 2px solid transparent;
     background: #3498DB;
     color: #ffffff;
@@ -64,15 +83,31 @@
     display: block;
     width: 250px;
     margin: 0 auto;
-    }
-    
-    .btn:hover {
+}
+
+.home-btn {
+    border: 2px solid transparent;
+    background: #3498DB;
+    color: #ffffff;
+    font-size: 16px;
+    line-height: 25px;
+    padding: 10px 0;
+    text-decoration: none;
+    text-shadow: none;
+    border-radius: 3px;
+    box-shadow: none;
+    transition: 0.25s;
+    display: block;
+    margin: 0 auto;
+}
+
+.btn:hover {
     background-color: #2980B9;
-    }
-    
-    .login-link {
+}
+
+.login-link {
     font-size: 12px;
     color: #444;
     display: block;
     margin-top: 12px;
-    }
+}
