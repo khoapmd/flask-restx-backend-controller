@@ -56,7 +56,7 @@ class ESPTEMI1500Data(db.Model):
 
 # Define the request parser
 get_esp_firmware_parser = reqparse.RequestParser()
-get_esp_firmware_parser.add_argument('filePrefix', type=str, required=True, help='The file prefix')
+get_esp_firmware_parser.add_argument('filePrefix', type=str, required=True, choices=['tempSensorLily', 'temi1500ESP32'], help='The file prefix')
 get_esp_firmware_parser.add_argument('screenSize', type=str, required=True, help='The screen size')
 get_esp_firmware_parser.add_argument('version', type=str, required=True, help='The current firmware version')
 get_esp_firmware_parser.add_argument('update', type=str, required=True, choices=['Y', 'N'], help='Whether to update the firmware')
