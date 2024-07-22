@@ -8,8 +8,9 @@ auth_bp = Blueprint('auth', __name__)
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
-    username = request.form['username']
-    password = request.form['password']
+    data = request.json
+    username = data.get('username')
+    password = data.get('password')
 
     # Retrieve user from database
     user = User.query.filter_by(username=username).first()
@@ -18,7 +19,8 @@ def login():
         stored_password_hash = user.password_hash
         if check_password_hash(stored_password_hash, password):
             session['logged_in'] = True
-    return redirect(url_for('home'))
+            return {'success': True}
+    return {'success': False}
 
 @auth_bp.route("/logout")
 def logout():
