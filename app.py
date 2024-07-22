@@ -70,7 +70,9 @@ def validate_secret_key():
     
     try:
         payload = jwt.decode(auth_token, SESSION_KEY, algorithms=['HS256'])
-        if payload['role'] != 'admin' or payload['role'] != 'dev':
+        if payload['role'] == 'admin' or payload['role'] == 'dev':
+            return
+        else:
             return {'message': 'Unauthorized. Admin or Dev access required.'}, 403
     except jwt.ExpiredSignatureError:
         return {'message': 'Token expired. Please log in again.'}, 401
