@@ -69,10 +69,6 @@ def validate_secret_key():
         return {'message': 'Unauthorized. No token provided.'}, 401
     
     try:
-        # Remove 'Bearer ' prefix if present
-        if auth_token.startswith('Bearer '):
-            auth_token = auth_token[7:]
-        
         payload = jwt.decode(auth_token, SESSION_KEY, algorithms=['HS256'])
         if payload['role'] != 'admin' or payload['role'] != 'dev':
             return {'message': 'Unauthorized. Admin or Dev access required.'}, 403
