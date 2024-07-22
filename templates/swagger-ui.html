@@ -1,37 +1,46 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="UTF-8">
     <title>API Management</title>
-    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.0.0/swagger-ui.css">
+    <link rel="stylesheet" type="text/css"
+        href="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.0.0/swagger-ui.css">
     <style>
         body {
             background-color: #f0f0f0;
         }
+
         .swagger-ui .topbar {
             background-color: #35495e;
             border-bottom: 2px solid #42b983;
         }
     </style>
 </head>
+
 <body>
     <div id="swagger-ui"></div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.0.0/swagger-ui-bundle.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.0.0/swagger-ui-standalone-preset.js"></script>
     <script>
-        window.onload = function() {
+        window.onload = function () {
             const ui = SwaggerUIBundle({
-                url: "/api/swagger.json",
+                url: "{{ url_for('api.specs') }}",
                 dom_id: '#swagger-ui',
                 deepLinking: true,
                 presets: [
                     SwaggerUIBundle.presets.apis,
                     SwaggerUIStandalonePreset
                 ],
-                layout: "StandaloneLayout"
+                layout: "StandaloneLayout",
+                requestInterceptor: function (request) {
+                    request.headers['auth_token'] = '{{ session.get("auth_token", "") }}';
+                    return request;
+                }
             });
             window.ui = ui;
         };
     </script>
 </body>
+
 </html>

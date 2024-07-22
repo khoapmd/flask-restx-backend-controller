@@ -1,5 +1,6 @@
 # app.py
 import os
+import jwt
 from flask import Flask, Blueprint, render_template, request, session, flash, redirect, url_for, send_from_directory
 from flask_restx import Api
 from flask_cors import CORS
@@ -54,8 +55,31 @@ def validate_secret_key():
     #print(request.endpoint)
     if request.endpoint in whitelisted_endpoints or request.path in whitelisted_paths:
         return
-    if 'X-Secret-Key' not in request.headers or request.headers['X-Secret-Key'] != VALID_KEY:
-        return {'message': 'Unauthorized. Invalid secret key.'}, 401
+    
+    api_key = request.headers.get('X-Secret-Key')
+    if api_key:
+        if api_key != VALID_KEY:
+            return {'message': 'Unauthorized. Invalid API key.'}, 401
+        return  # API key is valid, allow the request
+    
+    # If no API key, check for JWT token
+    auth_token = request.headers.get('Authorization') or session.get('auth_token')
+    
+    if not auth_token:
+        return {'message': 'Unauthorized. No token provided.'}, 401
+    
+    try:
+        # Remove 'Bearer ' prefix if present
+        if auth_token.startswith('Bearer '):
+            auth_token = auth_token[7:]
+        
+        payload = jwt.decode(auth_token, app.config['SECRET_KEY'], algorithms=['HS256'])
+        if payload['role'] != 'admin' or payload['role'] != 'dev':
+            return {'message': 'Unauthorized. Admin or Dev access required.'}, 403
+    except jwt.ExpiredSignatureError:
+        return {'message': 'Token expired. Please log in again.'}, 401
+    except jwt.InvalidTokenError:
+        return {'message': 'Invalid token. Please log in again.'}, 401
 
 @app.route('/favicon.ico')
 def favicon():

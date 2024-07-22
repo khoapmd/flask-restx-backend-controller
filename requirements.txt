@@ -9,3 +9,4 @@ redis
 Gunicorn
 python-dotenv
 bcrypt
+PyJWT
