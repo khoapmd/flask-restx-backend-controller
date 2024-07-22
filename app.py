@@ -63,7 +63,7 @@ def validate_secret_key():
         return  # API key is valid, allow the request
     
     # If no API key, check for JWT token
-    auth_token = request.headers.get('Authorization') or session.get('auth_token')
+    auth_token = session.get('auth_token')
     
     if not auth_token:
         return {'message': 'Unauthorized. No token provided.'}, 401
