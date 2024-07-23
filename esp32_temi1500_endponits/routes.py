@@ -4,6 +4,7 @@ from flask_restx import Resource
 from . import api
 from .models import esp_data_model, ESPTEMI1500Data, get_esp_firmware_parser, update_firm_ver_model
 from database import db, redis_client
+from packaging import version
 from config import TEMI1500_FIRMWARE_DIR, REDIS_EX
 
 @api.route('/data/all')
@@ -132,7 +133,7 @@ def get_latest_version(file_prefix, screen_size):
             versions.append(match.group(1))
     
     if versions:
-        return max(versions, key=lambda v: list(map(int, v.split('.'))))
+        return max(versions, key=version.parse)
     return None
 
 @api.route('/firmware')
@@ -145,14 +146,14 @@ class GetESPFirmware(Resource):
 
             file_prefix = args['filePrefix']
             screen_size = args['screenSize']
-            version = args['version']
+            current_version = args['version']
             update = args['update']
 
             latest_version = get_latest_version(file_prefix, screen_size)
             if not latest_version:
                 return {"error": "No firmware found for the given prefix and screen size"}, 404
 
-            has_new_version = 'Y' if version < latest_version else 'N'
+            has_new_version = 'Y' if version.parse(current_version) < version.parse(latest_version) else 'N'
 
             if update == 'Y' and has_new_version == 'Y':
                 firmware_file = f"{file_prefix}_{screen_size}_{latest_version}.bin"
