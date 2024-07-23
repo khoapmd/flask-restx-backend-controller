@@ -9,13 +9,13 @@ services:
       - "5002:5000"
     volumes:
       - .:/usr/src/app
-      # - /data1/OTA/firmware:/firmware
-      - C:/firmware:/firmware
+      - /data1/OTA/firmware:/firmware
+      #- C:/firmware:/firmware
     environment:
       FLASK_DEBUG: 0
       FLASK_ENV: production
     networks:
-      - iot-stack_default
+      - iot-stack_iot-bridge
     env_file:
       - production.env
 
@@ -33,19 +33,20 @@ services:
 #       - "5432:5432"
 #     volumes:
 #       - postgres_data:/var/lib/postgresql/data
-  # redis:
-  #     image: redis:latest
-  #     container_name: redis
-  #     ports:
-  #       - "6379:6379"
-  #     volumes:
-  #       - redis_data:/data
+  redis:
+      image: redis:latest
+      container_name: redis
+      ports:
+        - "6379:6379"
+      volumes:
+        - redis_data:/data
+      networks:
+      - iot-stack_iot-bridge
 
 networks:
-  iot-stack_default:
+  iot-stack_iot-bridge:
     external: true
-# volumes:
+volumes:
 #   postgres_data:
-#   redis_data:
-#     driver: local
+  redis_data:
 
