@@ -58,6 +58,8 @@ class DeviceData(Resource):
 
             # Invalidate the Redis cache
             redis_client.delete('temi1500_data_all')
+            cache_exist_key = f'temi1500_exist_{u_id}'
+            redis_client.delete(cache_exist_key)
 
             return {'message': 'ESP data created successfully'}, 201
         except Exception as e:

@@ -71,6 +71,8 @@ class DeviceData(Resource):
 
             # Invalidate the cache
             redis_client.delete('lilygo_data_all')
+            cache_exist_key = f'lilygo_exist_{u_id}'
+            redis_client.delete(cache_exist_key)
 
             return {'message': 'ESP data created successfully'}, 201
         except Exception as e:
@@ -137,11 +139,9 @@ class DeviceCheck(Resource):
             max_id = db.session.query(func.max(SENSORTEMPHUMIDATA.id)).scalar()
             next_id = max_id + 1 if max_id is not None else 1
             result = f"{device_type}{str(next_id).zfill(4)}"
-            if result:
-                response = {"exist": "Y", "firm_ver": result.firm_ver}
-                redis_client.set(cache_key, json.dumps(response), ex=REDIS_EX)
-                return response, 200
-            return {"exist": "N"}, 204
+            response = {"exist": "N", "device_name": result}
+            redis_client.set(cache_key, json.dumps(response), ex=REDIS_EX)
+            return response, 200
         except Exception as e:
             return {"error": str(e)}, 500
 
