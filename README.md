@@ -1,5 +1,7 @@
 # Flask-RESTX Backend
 
+![img.png](https://github.com/khoapmd/flask-restx-backend-controller/blob/main/imgs/backend.png?raw=true)
+
 ## Overview
 
 This Flask-RESTX backend serves as the central management system for the Temperature28LilyGo IoT project. It handles device registration, configuration management, and OTA updates for connected IoT devices.
