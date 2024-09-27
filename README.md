@@ -1,6 +1,6 @@
 # Flask-RESTX Backend
 
-![img.png](https://github.com/khoapmd/flask-restx-backend-controller/blob/main/imgs/backend.png?raw=true)
+![img.png](https://github.com/khoapmd/flask-restx-backend-controller/blob/master/static/backend.png?raw=true)
 
 ## Overview
 
