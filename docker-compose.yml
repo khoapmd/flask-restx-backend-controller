@@ -9,8 +9,8 @@ services:
       - "5002:5000"
     volumes:
       - .:/usr/src/app
-      - /data1/OTA/firmware:/firmware
-      #- C:/firmware:/firmware
+      #- /data1/OTA/firmware:/firmware
+      - C:/firmware:/firmware
     environment:
       FLASK_DEBUG: 0
       FLASK_ENV: production

@@ -6,7 +6,7 @@ from .models import esp_data_model, sensor_data_model, LILYGOS3DATA, SENSORTEMPH
 from database import db, redis_client
 from sqlalchemy import func
 from packaging import version
-from config import LILYGOS3_FIRMWARE_DIR, REDIS_EX
+from config import FIRMWARE_DIR, REDIS_EX
 
 @api.route('/data/all')
 class DeviceList(Resource):
@@ -148,8 +148,8 @@ class DeviceCheck(Resource):
 def get_latest_version(file_prefix, screen_size):
     regex_pattern = re.compile(rf"{re.escape(file_prefix)}_{re.escape(screen_size)}_(\d+\.\d+)\.bin")
     versions = []
-
-    for filename in os.listdir(LILYGOS3_FIRMWARE_DIR):
+    full_path = os.path.join(FIRMWARE_DIR, file_prefix)
+    for filename in os.listdir(full_path):
         match = regex_pattern.match(filename)
         if match:
             versions.append(match.group(1))
@@ -178,7 +178,8 @@ class GetESPFirmware(Resource):
 
             if update == 'Y' and has_new_version == 'Y':
                 firmware_file = f"{file_prefix}_{screen_size}_{latest_version}.bin"
-                firmware_path = os.path.join(LILYGOS3_FIRMWARE_DIR, firmware_file)
+                full_path = os.path.join(FIRMWARE_DIR, file_prefix)
+                firmware_path = os.path.join(full_path, firmware_file)
                 if os.path.exists(firmware_path):
                     return send_file(firmware_path, as_attachment=True)
                 else:

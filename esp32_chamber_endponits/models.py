@@ -3,7 +3,7 @@ from . import api
 from database import db
 
 # Models
-esp_data_model = api.model('ESPTEMI1500Data', {
+esp_data_model = api.model('ESPChamberData', {
     'org': fields.String(required=True, description='Organization'),
     'dept': fields.String(required=True, description='Department'),
     'room': fields.String(required=True, description='Room'),
@@ -15,8 +15,8 @@ esp_data_model = api.model('ESPTEMI1500Data', {
 })
 
 # SQLAlchemy models
-class ESPTEMI1500Data(db.Model):
-    __tablename__ = 'esp_temi1500_data'
+class ESPChamberData(db.Model):
+    __tablename__ = 'esp_chamber_data'
 
     id = db.Column(db.Integer, primary_key=True)
     org = db.Column(db.String(255), nullable=False)
@@ -39,7 +39,7 @@ class ESPTEMI1500Data(db.Model):
         self.firm_ver = firm_ver
 
     def __repr__(self):
-        return f'<ESPTEMI1500Data {self.u_id}>'
+        return f'<ESPChamberData {self.u_id}>'
 
     def to_dict(self):
         return {
@@ -56,7 +56,7 @@ class ESPTEMI1500Data(db.Model):
 
 # Define the request parser
 get_esp_firmware_parser = reqparse.RequestParser()
-get_esp_firmware_parser.add_argument('filePrefix', type=str, required=True, choices=['tempSensorLily', 'temi1500ESP32'], help='The file prefix')
+get_esp_firmware_parser.add_argument('filePrefix', type=str, required=True, choices=['temi1500Chamber', 'metalChamber', 'dustChamber'], help='The file prefix')
 get_esp_firmware_parser.add_argument('screenSize', type=str, required=True, help='The screen size')
 get_esp_firmware_parser.add_argument('version', type=str, required=True, help='The current firmware version')
 get_esp_firmware_parser.add_argument('update', type=str, required=True, choices=['Y', 'N'], help='Whether to update the firmware')

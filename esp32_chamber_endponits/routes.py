@@ -2,10 +2,10 @@ import os, re
 from flask import request, send_file, json
 from flask_restx import Resource
 from . import api
-from .models import esp_data_model, ESPTEMI1500Data, get_esp_firmware_parser, update_firm_ver_model
+from .models import esp_data_model, ESPChamberData, get_esp_firmware_parser, update_firm_ver_model
 from database import db, redis_client
 from packaging import version
-from config import TEMI1500_FIRMWARE_DIR, REDIS_EX
+from config import FIRMWARE_DIR, REDIS_EX
 
 @api.route('/data/all')
 class DeviceList(Resource):
@@ -14,17 +14,17 @@ class DeviceList(Resource):
     def get(self):
         try:
             # Try to get the data from Redis
-            esp_data = redis_client.get('temi1500_data_all')
+            esp_data = redis_client.get('chamber_data_all')
             
             if esp_data:
                 return json.loads(esp_data)
 
             # If not found in Redis, get it from PostgreSQL
-            esp_data = ESPTEMI1500Data.query.all()
+            esp_data = ESPChamberData.query.all()
             esp_data_list = [data.to_dict() for data in esp_data]
             
             # Store the data in Redis
-            redis_client.set('temi1500_data_all', json.dumps(esp_data_list), ex=REDIS_EX)
+            redis_client.set('chamber_data_all', json.dumps(esp_data_list), ex=REDIS_EX)
 
             return esp_data_list, 200
         except Exception as e:
@@ -42,7 +42,7 @@ class DeviceData(Resource):
             device_type = data.get('device_type')
             firm_ver = data.get('firm_ver')
 
-            new_esp_data = ESPTEMI1500Data(
+            new_esp_data = ESPChamberData(
                 org='org',
                 dept='dept',
                 room='room',
@@ -57,8 +57,8 @@ class DeviceData(Resource):
             db.session.commit()
 
             # Invalidate the Redis cache
-            redis_client.delete('temi1500_data_all')
-            cache_exist_key = f'temi1500_exist_{u_id}'
+            redis_client.delete('chamber_data_all')
+            cache_exist_key = f'chamber_exist_{u_id}'
             redis_client.delete(cache_exist_key)
 
             return {'message': 'ESP data created successfully'}, 201
@@ -71,17 +71,17 @@ class DeviceData(Resource):
     def get(self):
         try:
             u_id = request.args.get('u_id')
-            cache_key = f'temi1500_data_{u_id}'
+            cache_key = f'chamber_data_{u_id}'
             cached_data = redis_client.get(cache_key)
             if cached_data:
                 return json.loads(cached_data) # Convert string back to dict
 
-            temi1500 = ESPTEMI1500Data.query.filter_by(u_id=u_id).first()
-            if temi1500:
+            chamber = ESPChamberData.query.filter_by(u_id=u_id).first()
+            if chamber:
                 # Cache the result
-                redis_client.set(cache_key, json.dumps(temi1500.to_dict()), ex=REDIS_EX)
+                redis_client.set(cache_key, json.dumps(chamber.to_dict()), ex=REDIS_EX)
 
-                return temi1500.to_dict(), 200
+                return chamber.to_dict(), 200
             else:
                 return {'message': 'No data found for the given u_id'}, 404
         except Exception as e:
@@ -110,12 +110,12 @@ class DeviceCheck(Resource):
             u_id = request.args.get('u_id')
 
             # Try to get the data from Redis
-            cache_key = f'temi1500_exist_{u_id}'
+            cache_key = f'chamber_exist_{u_id}'
             result = redis_client.get(cache_key)
             if result:
                 return json.loads(result)
 
-            result = ESPTEMI1500Data.query.filter_by(u_id=u_id).first()
+            result = ESPChamberData.query.filter_by(u_id=u_id).first()
             if result:
                 response = {"exist": "Y", "firm_ver": result.firm_ver}
                 redis_client.set(cache_key, json.dumps(response), ex=REDIS_EX)
@@ -128,8 +128,8 @@ class DeviceCheck(Resource):
 def get_latest_version(file_prefix, screen_size):
     regex_pattern = re.compile(rf"{re.escape(file_prefix)}_{re.escape(screen_size)}_(\d+\.\d+)\.bin")
     versions = []
-    
-    for filename in os.listdir(TEMI1500_FIRMWARE_DIR):
+    full_path = os.path.join(FIRMWARE_DIR, file_prefix)
+    for filename in os.listdir(full_path):
         match = regex_pattern.match(filename)
         if match:
             versions.append(match.group(1))
@@ -159,7 +159,8 @@ class GetESPFirmware(Resource):
 
             if update == 'Y' and has_new_version == 'Y':
                 firmware_file = f"{file_prefix}_{screen_size}_{latest_version}.bin"
-                firmware_path = os.path.join(TEMI1500_FIRMWARE_DIR, firmware_file)
+                full_path = os.path.join(FIRMWARE_DIR, file_prefix)
+                firmware_path = os.path.join(full_path, firmware_file)
                 if os.path.exists(firmware_path):
                     return send_file(firmware_path, as_attachment=True)
                 else:
@@ -179,16 +180,16 @@ class GetESPFirmware(Resource):
             data = request.json
             firm_ver = data.get('firm_ver')
 
-            esp_data = ESPTEMI1500Data.query.filter_by(u_id=u_id).first()
+            esp_data = ESPChamberData.query.filter_by(u_id=u_id).first()
             if not esp_data:
                 return {"error": "Device not found"}, 404
 
             esp_data.firm_ver = firm_ver
             db.session.commit()
 
-            cache_all_key = 'temi1500_data_all'
-            cache_data_key = f'temi1500_data_{u_id}'
-            cache_exist_key = f'temi1500_exist_{u_id}'
+            cache_all_key = 'chamber_data_all'
+            cache_data_key = f'chamber_data_{u_id}'
+            cache_exist_key = f'chamber_exist_{u_id}'
             redis_client.delete(cache_all_key)
             redis_client.delete(cache_data_key)
             redis_client.delete(cache_exist_key)

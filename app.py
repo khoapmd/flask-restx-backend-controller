@@ -9,7 +9,7 @@ from config import VALID_KEY, SESSION_KEY
 
 # Import namespaces and models
 from esp32_temphumi_endpoints.routes import api as lilygos3_ns
-from esp32_temi1500_endponits.routes import api as temi1500_ns
+from esp32_chamber_endponits.routes import api as chamber_ns
 from firmware_control_endpoints.routes import api as firmware_ns
 from redis_endpoints.routes import api as redis_ns
 from auth_endpoints.routes import auth_bp  # Import the Blueprint for authentication
@@ -41,7 +41,7 @@ api = Api(blueprint,
 
 # Add namespaces for different endpoints
 api.add_namespace(lilygos3_ns, path='/v1/temphumi')
-api.add_namespace(temi1500_ns, path='/v1/temi1500')
+api.add_namespace(chamber_ns, path='/v1/chamber')
 api.add_namespace(firmware_ns, path='/v1/firmware')
 api.add_namespace(redis_ns, path='/v1/redis')
 
