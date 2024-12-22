@@ -12,19 +12,25 @@ from esp32_temphumi_endpoints.routes import api as lilygos3_ns
 from esp32_chamber_endponits.routes import api as chamber_ns
 from firmware_control_endpoints.routes import api as firmware_ns
 from redis_endpoints.routes import api as redis_ns
-from auth_endpoints.routes import auth_bp  # Import the Blueprint for authentication
+from auth_endpoints.routes import api as auth_ns
 
 # Initialize Flask app
 app = Flask(__name__, template_folder='templates')
 app.secret_key = SESSION_KEY
-CORS(app)  # Enable CORS for all origins
+CORS(app, resources={
+    r"/api/*": {
+        "origins": ["http://localhost:3039"],
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization", "X-Secret-Key"],
+        "supports_credentials": True
+    }
+})
 
 # Initialize the database and migrations
 init_db(app)
 
 # Blueprint for API
 blueprint = Blueprint('api', __name__, url_prefix='/api')
-app.register_blueprint(auth_bp, url_prefix='/auth')  # Register auth blueprint
 authorizations = {
     'apikey': {
         'type': 'apiKey',
@@ -44,15 +50,15 @@ api.add_namespace(lilygos3_ns, path='/v1/temphumi')
 api.add_namespace(chamber_ns, path='/v1/chamber')
 api.add_namespace(firmware_ns, path='/v1/firmware')
 api.add_namespace(redis_ns, path='/v1/redis')
-
+api.add_namespace(auth_ns, path='/auth')
 # Register blueprint with the app
 app.register_blueprint(blueprint)
 
 @app.before_request
 def validate_secret_key():
     whitelisted_endpoints = ['api.specs', 'home', 'static', 'docs', 'auth.login', 'auth.logout', 'favicon']
-    whitelisted_paths = ['/login', '/logout']
-    #print(request.endpoint)
+    whitelisted_paths = ['/login', '/logout', '/api/auth/login', '/api/auth/logout']
+    print(request.path)
     if request.endpoint in whitelisted_endpoints or request.path in whitelisted_paths:
         return
     
@@ -87,19 +93,12 @@ def favicon():
 # Route for the home page
 @app.route('/')
 def home():
-    if not session.get('logged_in'):
-        return render_template('login.html')
-    else:
-        return render_template('home.html')
+    return render_template('home.html')
 
 # Route for custom Swagger UI
 @app.route('/api/docs')
 def docs():
-    print(session.get('logged_in'))
-    if not session.get('logged_in'):
-        return redirect(url_for('home'))
-    else:
-        return render_template('swagger-ui.html')
+    return render_template('swagger-ui.html')
 
 if __name__ == '__main__':
     app.run(debug=True)

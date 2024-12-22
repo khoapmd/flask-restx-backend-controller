@@ -106,15 +106,79 @@ class DeviceData(Resource):
     @api.doc('update_esp_data')
     @api.doc(security='apikey')
     @api.expect(esp_data_model)
-    def put(self, id):
-        return {'message': 'nothing'}, 403
-        # Implementation remains the same as update_esp_data()
+    def put(self):
+        try:
+            data = request.json
+            u_id = data.get('u_id')
+            org = data.get('org')
+            dept = data.get('dept')
+            room = data.get('room')
+            line = data.get('line')
+            display_name = data.get('display_name')
+            device_type = data.get('device_type')
+            sensor_id = data.get('sensor_id')
+            firm_ver = data.get('firm_ver')
+
+            lilygo = LILYGOS3DATA.query.filter_by(u_id=u_id).first()
+            sensor = SENSORTEMPHUMIDATA.query.filter_by(u_id=u_id).first()
+
+            if not lilygo or not sensor:
+                return {"error": "Device not found"}, 404
+
+            # Update LILYGOS3DATA
+            lilygo.org = org
+            lilygo.dept = dept
+            lilygo.room = room
+            lilygo.line = line
+            lilygo.display_name = display_name
+            lilygo.device_type = device_type
+            lilygo.firm_ver = firm_ver
+
+            # Update SENSORTEMPHUMIDATA
+            sensor.sensor_id = sensor_id
+
+            db.session.commit()
+
+            # Invalidate caches
+            cache_all_key = 'lilygo_data_all'
+            cache_data_key = f'lilygo_data_{u_id}'
+            cache_exist_key = f'lilygo_exist_{u_id}'
+            redis_client.delete(cache_all_key)
+            redis_client.delete(cache_data_key)
+            redis_client.delete(cache_exist_key)
+
+            return {'message': 'Device data updated successfully'}, 200
+        except Exception as e:
+            return {"error": str(e)}, 500
 
     @api.doc('delete_esp_data')
     @api.doc(security='apikey')
-    def delete(self, id):
-        return {'message': 'nothing'}, 403
-        # Implementation remains the same as delete_esp_data()
+    @api.param('u_id', 'Device Unique ID')
+    def delete(self):
+        try:
+            u_id = request.args.get('u_id')
+            
+            lilygo = LILYGOS3DATA.query.filter_by(u_id=u_id).first()
+            sensor = SENSORTEMPHUMIDATA.query.filter_by(u_id=u_id).first()
+
+            if not lilygo or not sensor:
+                return {"error": "Device not found"}, 404
+
+            db.session.delete(lilygo)
+            db.session.delete(sensor)
+            db.session.commit()
+
+            # Invalidate caches
+            cache_all_key = 'lilygo_data_all'
+            cache_data_key = f'lilygo_data_{u_id}'
+            cache_exist_key = f'lilygo_exist_{u_id}'
+            redis_client.delete(cache_all_key)
+            redis_client.delete(cache_data_key) 
+            redis_client.delete(cache_exist_key)
+
+            return {'message': 'Device data deleted successfully'}, 200
+        except Exception as e:
+            return {"error": str(e)}, 500
 
 @api.route('/checkexist')
 class DeviceCheck(Resource):
