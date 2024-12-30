@@ -24,8 +24,8 @@
 				</div>
 				<div class="login-form">
 					<div class="control-group">
-						<input type="text" class="login-field" value="" placeholder="username" name="username" id="username">
-						<label class="login-field-icon fui-user" for="username"></label>
+						<input type="text" class="login-field" value="" placeholder="email" name="email" id="email">
+						<label class="login-field-icon fui-user" for="email"></label>
 					</div>
 					<div class="control-group">
 						<input type="password" class="login-field" value="" placeholder="password" name="password" id="password">
@@ -41,11 +41,11 @@
 		document.getElementById('loginForm').addEventListener('submit', function(event) {
 			event.preventDefault(); // Prevent the default form submission
 			
-			const username = document.getElementById('username').value;
+			const email = document.getElementById('email').value;
 			const password = document.getElementById('password').value;
 
 			const data = {
-				username: username,
+				email: email,
 				password: password
 			};
 
@@ -61,14 +61,14 @@
 				if (data.success) {
 					window.location.href = '/api/docs'; // Redirect to /api/docs on successful login
 				} else {
-					const usernameField = document.getElementById('username');
+					const emailField = document.getElementById('email');
 					const passwordField = document.getElementById('password');
 
-					usernameField.classList.add('error-border');
+					emailField.classList.add('error-border');
 					passwordField.classList.add('error-border');
 					// Remove error class after 3 seconds
 					setTimeout(() => {
-						usernameField.classList.remove('error-border');
+						emailField.classList.remove('error-border');
 						passwordField.classList.remove('error-border');
 					}, 3000);
 				}

@@ -34,7 +34,7 @@
                 ],
                 layout: "StandaloneLayout",
                 requestInterceptor: function (request) {
-                    request.headers['auth_token'] = '{{ session.get("auth_token", "") }}';
+                    request.headers['Authorization'] = '{{ session.get("auth_token", "") }}';
                     return request;
                 }
             });

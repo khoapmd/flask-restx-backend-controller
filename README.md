@@ -46,11 +46,11 @@ This Flask-RESTX backend serves as the central management system for the Tempera
    docker exec -it flask-restx python auth_endpoints/password_hash.py
    ```
 
-   Follow the prompts to create a username and password. The script will generate a password hash.
+   Follow the prompts to create an email and password. The script will generate a password hash.
 
 4. **Add User to Database**
 
-   Manually add the username and password hash to the User table in the database.
+   Manually add the email and password hash to the User table in the database.
 
 ### Development Environment
 
@@ -81,11 +81,11 @@ This Flask-RESTX backend serves as the central management system for the Tempera
    python auth_endpoints/password_hash.py
    ```
 
-   Follow the prompts to create a username and password. The script will generate a password hash.
+   Follow the prompts to create an email and password. The script will generate a password hash.
 
 5. **Add User to Database**
 
-   Manually add the username and password hash to the User table in the database.
+   Manually add the email and password hash to the User table in the database.
 
 6. **Run the Application**
 
