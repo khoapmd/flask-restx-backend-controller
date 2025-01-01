@@ -1,6 +1,7 @@
 import os, re
 from flask import request, jsonify, send_file, json
 from flask_restx import Resource
+from packaging import version
 from . import api
 from .models import versionfirmware_parser, uploadfirmware_parser, deletefirmware_parser
 from werkzeug.utils import secure_filename
@@ -130,5 +131,60 @@ class Firmware(Resource):
         except Exception as e:
             return {"error": str(e)}, 500
 
+@api.route('/files/all')
+class AllFirmware(Resource):
+    @api.doc(security='apikey')
+    def get(self):
+        try:
+            if not os.path.exists(FIRMWARE_DIR):
+                return {"error": "Firmware directory not found"}, 404
+
+            firmware_list = []
+            firmware_versions = {}  # Dictionary to track versions by prefix and screen size
+            
+            # Walk through all subdirectories in FIRMWARE_DIR
+            for file_prefix in os.listdir(FIRMWARE_DIR):
+                prefix_path = os.path.join(FIRMWARE_DIR, file_prefix)
+                if os.path.isdir(prefix_path):
+                    # First pass to collect all versions by prefix and screen size
+                    for filename in os.listdir(prefix_path):
+                        match = re.match(rf"({re.escape(file_prefix)})_(\d+\.?\d*)_(\d+\.?\d*)\.bin", filename)
+                        if match:
+                            prefix, screen_size, current_version = match.groups()
+                            key = f"{file_prefix}_{screen_size}"
+                            
+                            if key not in firmware_versions:
+                                firmware_versions[key] = {
+                                    'latest': current_version,
+                                    'prefix': file_prefix,
+                                    'screen_size': screen_size
+                                }
+                            else:
+                                # Update latest version if current version is newer
+                                if version.parse(current_version) > version.parse(firmware_versions[key]['latest']):
+                                    firmware_versions[key]['latest'] = current_version
+
+                    # Second pass to create entries with correct latest version flags
+                    for filename in os.listdir(prefix_path):
+                        match = re.match(rf"({re.escape(file_prefix)})_(\d+\.?\d*)_(\d+\.?\d*)\.bin", filename)
+                        if match:
+                            prefix, screen_size, current_version = match.groups()
+                            key = f"{file_prefix}_{screen_size}"
+                            
+                            firmware_list.append({
+                                "filePrefix": file_prefix,
+                                "screenSizes": screen_size,
+                                "versions": current_version,
+                                "isLatest": current_version == firmware_versions[key]['latest']
+                            })
+
+            return {
+                "success": True,
+                "firmwares": firmware_list
+            }, 200
+
+        except Exception as e:
+            print(f"Error getting firmware list: {str(e)}")
+            return {"success": False, "error": str(e)}, 500
 
     
