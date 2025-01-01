@@ -107,7 +107,6 @@ def validate_request():
     if api_key:
         if api_key != VALID_KEY:
             return {'message': 'Unauthorized. Invalid API key.'}, 401
-        print("Valid API key")
         return  # API key is valid, allow the request
     
     # If no API key, check for Bearer token
