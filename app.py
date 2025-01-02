@@ -5,7 +5,8 @@ from flask import Flask, Blueprint, render_template, request, send_from_director
 from flask_restx import Api
 from flask_cors import CORS
 from database import init_db
-from config import VALID_KEY, SESSION_KEY
+from config import VALID_KEY, SESSION_KEY, FRONTEND_URL
+import logging
 
 # Import namespaces and models
 from esp32_temphumi_endpoints.routes import api as lilygos3_ns
@@ -17,11 +18,27 @@ from auth_endpoints.routes import api as auth_ns
 # Initialize Flask app
 app = Flask(__name__, template_folder='templates')
 app.secret_key = SESSION_KEY
+ALLOWED_ORIGINS = FRONTEND_URLS.split(',') if isinstance(FRONTEND_URLS, str) else [FRONTEND_URLS]
+# Debug the FRONTEND_URLS parsing
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
+# Debug the FRONTEND_URLS parsing
+logger.info(f"Raw FRONTEND_URLS: {FRONTEND_URLS}")
+
+# Fix the origins parsing - make sure to strip whitespace
+if isinstance(FRONTEND_URLS, str):
+    ALLOWED_ORIGINS = [origin.strip() for origin in FRONTEND_URLS.split(',')]
+    logger.debug(f"Split FRONTEND_URLS into: {ALLOWED_ORIGINS}")
+else:
+    ALLOWED_ORIGINS = [FRONTEND_URLS]
+
+logger.info(f"Final ALLOWED_ORIGINS: {ALLOWED_ORIGINS}")
 
 # Update CORS configuration
 CORS(app, resources={
     r"/api/*": {
-        "origins": ["http://localhost:3031"],
+        "origins": ALLOWED_ORIGINS,
         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         "allow_headers": [
             "Content-Type", 
@@ -35,7 +52,6 @@ CORS(app, resources={
         "expose_headers": ["Authorization"],
         "supports_credentials": True,
         "max_age": 3600,
-        # "allow_origin": "*"  # Be careful with this in production
     }
 })
 
@@ -76,12 +92,24 @@ app.register_blueprint(blueprint)
 @app.before_request
 def handle_preflight():
     if request.method == "OPTIONS":
-        return {"success": True}, 200, {
-            'Access-Control-Allow-Origin': 'http://localhost:3031',
-            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Secret-Key',
-            'Access-Control-Max-Age': '3600'
-        }
+        origin = request.headers.get('Origin')
+        logger.info(f"Received preflight request from origin: {origin}")
+        logger.info(f"Current allowed origins: {ALLOWED_ORIGINS}")
+        
+        if origin in ALLOWED_ORIGINS:
+            logger.info(f"Accepting origin: {origin}")
+            headers = {
+                'Access-Control-Allow-Origin': origin,  # Use the actual requesting origin
+                'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Secret-Key',
+                'Access-Control-Allow-Credentials': 'true',
+                'Access-Control-Max-Age': '3600',
+                'Vary': 'Origin'
+            }
+            return {"success": True}, 200, headers
+        else:
+            logger.warning(f"Rejecting origin: {origin}")
+            return {"error": "Origin not allowed"}, 403
 
 @app.before_request
 def validate_request():
@@ -132,6 +160,22 @@ def validate_request():
     except jwt.InvalidTokenError as e:
         print(f"Token validation error: {str(e)}")
         return {'message': 'Invalid token. Please log in again.'}, 401
+
+# Add this to handle CORS for all responses
+@app.after_request
+def after_request(response):
+    origin = request.headers.get('Origin')
+    logger.debug(f"after_request: Handling response for origin: {origin}")
+    
+    if origin in ALLOWED_ORIGINS:
+        logger.debug(f"Setting CORS headers for origin: {origin}")
+        response.headers['Access-Control-Allow-Origin'] = origin  # Use the actual requesting origin
+        response.headers['Access-Control-Allow-Credentials'] = 'true'
+        response.headers['Vary'] = 'Origin'
+    else:
+        logger.warning(f"Origin not allowed in after_request: {origin}")
+    
+    return response
 
 @app.route('/favicon.ico')
 def favicon():

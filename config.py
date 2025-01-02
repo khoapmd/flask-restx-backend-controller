@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
+FRONTEND_URL = os.getenv('FRONTEND_URL')
 VALID_KEY = os.getenv('VALID_KEY')
 DATABASE_URI = os.getenv('DATABASE_URI')
 REDIS_HOST=os.getenv('REDIS_HOST', 'localhost')
