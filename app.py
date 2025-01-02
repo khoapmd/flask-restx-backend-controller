@@ -5,7 +5,7 @@ from flask import Flask, Blueprint, render_template, request, send_from_director
 from flask_restx import Api
 from flask_cors import CORS
 from database import init_db
-from config import VALID_KEY, SESSION_KEY, FRONTEND_URL
+from config import VALID_KEY, SESSION_KEY, FRONTEND_URLS
 import logging
 
 # Import namespaces and models
@@ -29,11 +29,8 @@ logger.info(f"Raw FRONTEND_URLS: {FRONTEND_URLS}")
 # Fix the origins parsing - make sure to strip whitespace
 if isinstance(FRONTEND_URLS, str):
     ALLOWED_ORIGINS = [origin.strip() for origin in FRONTEND_URLS.split(',')]
-    logger.debug(f"Split FRONTEND_URLS into: {ALLOWED_ORIGINS}")
 else:
     ALLOWED_ORIGINS = [FRONTEND_URLS]
-
-logger.info(f"Final ALLOWED_ORIGINS: {ALLOWED_ORIGINS}")
 
 # Update CORS configuration
 CORS(app, resources={
@@ -93,11 +90,8 @@ app.register_blueprint(blueprint)
 def handle_preflight():
     if request.method == "OPTIONS":
         origin = request.headers.get('Origin')
-        logger.info(f"Received preflight request from origin: {origin}")
-        logger.info(f"Current allowed origins: {ALLOWED_ORIGINS}")
-        
+
         if origin in ALLOWED_ORIGINS:
-            logger.info(f"Accepting origin: {origin}")
             headers = {
                 'Access-Control-Allow-Origin': origin,  # Use the actual requesting origin
                 'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
@@ -108,7 +102,6 @@ def handle_preflight():
             }
             return {"success": True}, 200, headers
         else:
-            logger.warning(f"Rejecting origin: {origin}")
             return {"error": "Origin not allowed"}, 403
 
 @app.before_request
@@ -118,16 +111,12 @@ def validate_request():
         return
         
     print(f"Path: {request.path}")
-    # print(f"Endpoint: {request.endpoint}")
-    # print(f"Method: {request.method}")
-    # print(f"Headers: {request.headers}")
 
     # Whitelist paths that don't need authentication
     whitelisted_endpoints = ['api.specs', 'home', 'static', 'docs', 'auth.sign_in', 'auth.sign_out', 'auth.me']
     whitelisted_paths = ['/login', '/api/auth/sign-in', '/api/auth/sign-out', '/api/auth/me']
     
     if request.endpoint in whitelisted_endpoints or request.path in whitelisted_paths:
-        print("Path is whitelisted")
         return
 
     # Check for API key first
@@ -139,42 +128,32 @@ def validate_request():
     
     # If no API key, check for Bearer token
     auth_header = request.headers.get('Authorization')
-    print(f"Auth header: {auth_header}")
     
     if not auth_header or not auth_header.startswith('Bearer '):
         return {'message': 'Unauthorized. No token provided.'}, 401
     
     try:
         token = auth_header.split(' ')[1]
-        print(f"Token: {token[:20]}...")  # Print first 20 chars for debugging
         payload = jwt.decode(token, SESSION_KEY, algorithms=['HS256'])
-        print(f"Decoded payload: {payload}")
         
         if payload['role'] == 'admin' or payload['role'] == 'dev':
-            print("Valid admin/dev token")
             return
         else:
             return {'message': 'Unauthorized. Admin or Dev access required.'}, 403
     except jwt.ExpiredSignatureError:
         return {'message': 'Token expired. Please log in again.'}, 401
     except jwt.InvalidTokenError as e:
-        print(f"Token validation error: {str(e)}")
         return {'message': 'Invalid token. Please log in again.'}, 401
 
 # Add this to handle CORS for all responses
 @app.after_request
 def after_request(response):
     origin = request.headers.get('Origin')
-    logger.debug(f"after_request: Handling response for origin: {origin}")
     
     if origin in ALLOWED_ORIGINS:
-        logger.debug(f"Setting CORS headers for origin: {origin}")
         response.headers['Access-Control-Allow-Origin'] = origin  # Use the actual requesting origin
         response.headers['Access-Control-Allow-Credentials'] = 'true'
         response.headers['Vary'] = 'Origin'
-    else:
-        logger.warning(f"Origin not allowed in after_request: {origin}")
-    
     return response
 
 @app.route('/favicon.ico')
