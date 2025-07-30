@@ -90,7 +90,7 @@ This Flask-RESTX backend serves as the central management system for the Tempera
 6. **Run the Application**
 
    ```bash
-   flask run
+   flask run --host=0.0.0.0
    ```
 
 ## Database Management
